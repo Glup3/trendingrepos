@@ -1,0 +1,17 @@
+query SearchRepos($query: String!, $limit: Int!, $cursor: String!) {
+  search(type: REPOSITORY, query: $query, first: $limit, after: $cursor) {
+    edges {
+      node {
+        ... on Repository {
+          id
+          stargazerCount
+          description
+          nameWithOwner
+          primaryLanguage {
+            name
+          }
+        }
+      }
+    }
+  }
+}
