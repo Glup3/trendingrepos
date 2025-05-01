@@ -2,16 +2,28 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
-	"net/http"
 	"os"
+	"strings"
+	"sync"
+	"time"
 
-	"github.com/Khan/genqlient/graphql"
+	_ "embed"
+
 	"github.com/glup3/trendingrepos/api"
 )
 
-var pagination_100_based_cursors = [...]string{
+//go:embed languages.txt
+var fileLanguages string
+
+const (
+	maxConcurrent = 100
+	timeoutSec    = 20
+	minStars      = 200
+)
+
+// These are 10 next page cursors for page size of 100
+var cursors = [10]string{
 	"",
 	"Y3Vyc29yOjEwMA==",
 	"Y3Vyc29yOjIwMA==",
@@ -24,57 +36,81 @@ var pagination_100_based_cursors = [...]string{
 	"Y3Vyc29yOjkwMA==",
 }
 
-type authedTransport struct {
-	wrapped      http.RoundTripper
-	apiKey       string
-	acceptHeader string
-}
-
-func (t *authedTransport) RoundTrip(req *http.Request) (*http.Response, error) {
-	req.Header.Set("Authorization", "bearer "+t.apiKey)
-	req.Header.Set("Accept", t.acceptHeader)
-	req.Header.Set("X-Github-Next-Global-ID", "1")
-	return t.wrapped.RoundTrip(req)
-}
-
 func main() {
+	languages := strings.Split(strings.TrimSpace(fileLanguages), "\n")
+
 	ctx := context.Background()
 	apiKey := os.Getenv("PAT_TOKEN")
 
-	c := graphql.NewClient("https://api.github.com/graphql", &http.Client{
-		Transport: &authedTransport{
-			apiKey:       apiKey,
-			wrapped:      http.DefaultTransport,
-			acceptHeader: "application/json",
-		},
-	})
+	c := api.NewAPIClient(apiKey)
 
-	search := func(start int, end int, cursor string) (*api.SearchReposResponse, error) {
-		return api.SearchRepos(ctx, c, fmt.Sprintf("is:public stars:%d..%d", start, end), 100, cursor)
-	}
+	var wg sync.WaitGroup
+	count := 0
 
-	i := 0
-	minStarCount := 200
-	maxStarCount := 1_000_000
+	for _, language := range languages {
+		maxStars := 1_000_000
 
-	for maxStarCount > minStarCount {
-		i++
-		resp, err := search(minStarCount, maxStarCount, "Y3Vyc29yOjkwMA==")
-		if err != nil {
-			slog.Error("failed fetching", slog.Any("error", err))
-			return
+		slog.Info("fetching by language", slog.String("language", language))
+
+		for maxStars > minStars {
+			for _, cursor := range cursors[:9] {
+				wg.Add(1)
+				count++
+
+				slog.Info("count", slog.Int("count", count))
+
+				if count%maxConcurrent == 0 {
+					slog.Info("cooling down", slog.Int("count", count))
+					time.Sleep(time.Second * time.Duration(timeoutSec))
+				}
+
+				go func(cursor, language string, maxStars int) {
+					defer wg.Done()
+
+					_, err := c.SearchRepos(ctx, cursor, api.QueryArgs{
+						MinStars:         minStars,
+						MaxStars:         maxStars,
+						Languages:        []string{language},
+						IgnoredLanguages: []string{},
+					})
+					if err != nil {
+						slog.Error(
+							"failed fetching",
+							slog.String("cursor", cursor),
+							slog.String("language", language),
+							slog.Int("maxStars", maxStars),
+							slog.Any("error", err),
+						)
+					}
+				}(cursor, language, maxStars)
+			}
+			wg.Wait()
+
+			count++
+			slog.Info("count", slog.Int("count", count))
+			repos, err := c.SearchRepos(ctx, cursors[9], api.QueryArgs{
+				MinStars:         minStars,
+				MaxStars:         maxStars,
+				Languages:        []string{language},
+				IgnoredLanguages: []string{},
+			})
+			if err != nil {
+				slog.Error(
+					"failed fetching last cursor",
+					slog.String("cursor", cursors[9]),
+					slog.String("language", language),
+					slog.Int("maxStars", maxStars),
+					slog.Any("error", err),
+				)
+				return // TODO: implement retry
+			}
+
+			if len(repos) == 0 {
+				break
+			}
+			maxStars = repos[len(repos)-1].Stars
 		}
-
-		lastRepo := resp.Search.Edges[len(resp.Search.Edges)-1].Node.(*api.SearchReposSearchSearchResultItemConnectionEdgesSearchResultItemEdgeNodeRepository)
-		slog.Info(
-			"updating max start count",
-			slog.Int("count", i),
-			slog.Int("prevMin", minStarCount),
-			slog.Int("prevMax", maxStarCount),
-			slog.Int("nextMax", lastRepo.StargazerCount),
-		)
-		maxStarCount = lastRepo.StargazerCount
 	}
 
-	slog.Info("finished", slog.Int("count", i))
+	slog.Info("Finished")
 }

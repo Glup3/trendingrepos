@@ -1,4 +1,4 @@
-query SearchRepos($query: String!, $limit: Int!, $cursor: String!) {
+query searchRepos($query: String!, $limit: Int!, $cursor: String!) {
   search(type: REPOSITORY, query: $query, first: $limit, after: $cursor) {
     edges {
       node {
