@@ -2,6 +2,10 @@ package loader
 
 import (
 	"context"
+	"fmt"
+	"log/slog"
+	"sync"
+	"time"
 
 	"github.com/glup3/trendingrepos/api"
 )
@@ -36,4 +40,44 @@ func (l *Loader) CollectStarsUpperBounds(ctx context.Context, languages, ignored
 	}
 
 	return starCounts, nil
+}
+
+func (l *Loader) LoadRepos(ctx context.Context, languages, ignoredLanguages []string, starsUpperBounds []int) {
+	var wg sync.WaitGroup
+	count := 0
+
+	for _, maxStars := range starsUpperBounds {
+		for _, cursor := range Cursors {
+			wg.Add(1)
+			count++
+
+			go func(cursor string, maxStars int) {
+				defer wg.Done()
+
+				_, err := l.apiClient.SearchRepos(ctx, cursor, api.QueryArgs{
+					MinStars:         200,
+					MaxStars:         maxStars,
+					Languages:        languages,
+					IgnoredLanguages: ignoredLanguages,
+				})
+				if err != nil {
+					slog.Error(
+						"failed fetching",
+						slog.String("cursor", cursor),
+						slog.String("language", fmt.Sprint(languages)),
+						slog.String("ignoredLanguages", fmt.Sprint(ignoredLanguages)),
+						slog.Int("maxStars", maxStars),
+						slog.Any("error", err),
+					)
+				}
+			}(cursor, maxStars)
+
+			if count%100 == 0 {
+				slog.Info("cooling down", slog.Int("count", count))
+				time.Sleep(time.Second * time.Duration(20))
+			}
+		}
+	}
+
+	wg.Wait()
 }

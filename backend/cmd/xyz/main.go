@@ -2,48 +2,12 @@ package main
 
 import (
 	"context"
-	"log/slog"
+	"log"
 	"os"
-	"sync"
-	"time"
 
 	"github.com/glup3/trendingrepos/api"
+	"github.com/glup3/trendingrepos/internal/loader"
 )
-
-// Go
-// var y = [...]int{
-//  1_000_000,
-// 	4043,
-// 	1924,
-// 	1177,
-// 	811,
-// 	616,
-// 	482,
-// 	396,
-// 	331,
-// 	283,
-// 	246,
-// 	215,
-// }
-
-var y = [...]int{
-	1_000_000,
-	3359,
-	1863,
-	1262,
-	924,
-	724,
-	603,
-	504,
-	429,
-	374,
-	330,
-	294,
-	266,
-	241,
-	220,
-	202,
-}
 
 var cursors = [10]string{
 	"",
@@ -59,46 +23,22 @@ var cursors = [10]string{
 }
 
 func main() {
-	var wg sync.WaitGroup
-	count := 0
-
 	ctx := context.Background()
 	apiKey := os.Getenv("PAT_TOKEN")
 
-	c := api.NewAPIClient(apiKey)
+	apiClient := api.NewAPIClient(apiKey)
+	l := loader.NewLoader(apiClient)
 
-	for _, maxStars := range y {
-		for _, cursor := range cursors {
-			wg.Add(1)
-			count++
+	languages := []string{"Python"}
+	ignoredLanguages := []string{}
 
-			go func(cursor, language string, maxStars int) {
-				defer wg.Done()
-
-				_, err := c.SearchRepos(ctx, cursor, api.QueryArgs{
-					MinStars:         200,
-					MaxStars:         maxStars,
-					Languages:        []string{language},
-					IgnoredLanguages: []string{},
-				})
-				if err != nil {
-					slog.Error(
-						"failed fetching",
-						slog.String("cursor", cursor),
-						slog.String("language", language),
-						slog.Int("maxStars", maxStars),
-						slog.Any("error", err),
-					)
-				}
-			}(cursor, "Java", maxStars)
-
-			if count%100 == 0 {
-				slog.Info("cooling down", slog.Int("count", count))
-				time.Sleep(time.Second * time.Duration(20))
-			}
-
-		}
+	starsUpperBounds, err := l.CollectStarsUpperBounds(ctx, languages, ignoredLanguages)
+	if err != nil {
+		log.Println("collecting stars upper bounds failed", err)
+		return
 	}
 
-	wg.Wait()
+	log.Println(starsUpperBounds)
+
+	l.LoadRepos(ctx, languages, ignoredLanguages, starsUpperBounds)
 }
