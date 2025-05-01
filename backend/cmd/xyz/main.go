@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"log"
+	"log/slog"
 	"os"
 
 	"github.com/glup3/trendingrepos/api"
@@ -26,8 +27,9 @@ func main() {
 	ctx := context.Background()
 	apiKey := os.Getenv("PAT_TOKEN")
 
+	logger := slog.New(slog.NewTextHandler(os.Stderr, nil))
 	apiClient := api.NewAPIClient(apiKey)
-	l := loader.NewLoader(apiClient)
+	l := loader.NewLoader(apiClient, logger)
 
 	languages := []string{"Python"}
 	ignoredLanguages := []string{}

@@ -12,10 +12,14 @@ import (
 
 type Loader struct {
 	apiClient *api.APIClient
+	logger    *slog.Logger
 }
 
-func NewLoader(apiClient *api.APIClient) *Loader {
-	return &Loader{apiClient: apiClient}
+func NewLoader(apiClient *api.APIClient, logger *slog.Logger) *Loader {
+	return &Loader{
+		apiClient: apiClient,
+		logger:    logger,
+	}
 }
 
 func (l *Loader) CollectStarsUpperBounds(ctx context.Context, languages, ignoredLanguages []string) ([]int, error) {
@@ -61,7 +65,7 @@ func (l *Loader) LoadRepos(ctx context.Context, languages, ignoredLanguages []st
 					IgnoredLanguages: ignoredLanguages,
 				})
 				if err != nil {
-					slog.Error(
+					l.logger.Error(
 						"failed fetching",
 						slog.String("cursor", cursor),
 						slog.String("language", fmt.Sprint(languages)),
@@ -73,7 +77,7 @@ func (l *Loader) LoadRepos(ctx context.Context, languages, ignoredLanguages []st
 			}(cursor, maxStars)
 
 			if count%100 == 0 {
-				slog.Info("cooling down", slog.Int("count", count))
+				l.logger.Info("cooling down", slog.Int("count", count))
 				time.Sleep(time.Second * time.Duration(20))
 			}
 		}
