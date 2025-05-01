@@ -76,9 +76,9 @@ func (l *Loader) LoadRepos(ctx context.Context, languages, ignoredLanguages []st
 				}
 			}(cursor, maxStars)
 
-			if count%100 == 0 {
+			if count%MaxConcurrentRequests == 0 {
 				l.logger.Info("cooling down", slog.Int("count", count))
-				time.Sleep(time.Second * time.Duration(20))
+				time.Sleep(LoadingTimeout)
 			}
 		}
 	}
