@@ -2,115 +2,85 @@ package main
 
 import (
 	"context"
+	"encoding/csv"
+	"log"
 	"log/slog"
 	"os"
 	"strings"
-	"sync"
-	"time"
 
 	_ "embed"
 
 	"github.com/glup3/trendingrepos/api"
+	"github.com/glup3/trendingrepos/internal/loader"
 )
 
 //go:embed languages.txt
 var fileLanguages string
 
-const (
-	maxConcurrent = 100
-	timeoutSec    = 20
-	minStars      = 200
-)
-
-// These are 10 next page cursors for page size of 100
-var cursors = [10]string{
-	"",
-	"Y3Vyc29yOjEwMA==",
-	"Y3Vyc29yOjIwMA==",
-	"Y3Vyc29yOjMwMA==",
-	"Y3Vyc29yOjQwMA==",
-	"Y3Vyc29yOjUwMA==",
-	"Y3Vyc29yOjYwMA==",
-	"Y3Vyc29yOjcwMA==",
-	"Y3Vyc29yOjgwMA==",
-	"Y3Vyc29yOjkwMA==",
-}
-
 func main() {
-	languages := strings.Split(strings.TrimSpace(fileLanguages), "\n")
-
 	ctx := context.Background()
 	apiKey := os.Getenv("PAT_TOKEN")
 
-	c := api.NewAPIClient(apiKey)
+	logger := slog.New(slog.NewTextHandler(os.Stderr, nil))
+	apiClient := api.NewAPIClient(apiKey)
+	l := loader.NewLoader(apiClient, logger)
 
-	var wg sync.WaitGroup
-	count := 0
+	allLanguages := strings.Split(strings.TrimSpace(fileLanguages), "\n")
+	timeoutCount := 0
+	var allRepos []api.Repo
 
-	for _, language := range languages {
-		maxStars := 1_000_000
+	type x struct {
+		language         string
+		starsUpperBounds []int
+	}
 
-		slog.Info("fetching by language", slog.String("language", language))
+	var ls []x
 
-		for maxStars > minStars {
-			for _, cursor := range cursors[:9] {
-				wg.Add(1)
-				count++
+	for _, language := range allLanguages {
+		languages := []string{language}
+		ignoredLanguages := []string{}
 
-				slog.Info("count", slog.Int("count", count))
+		logger.Info("start collecting stars upper bounds", slog.String("lang", language))
+		starsUpperBounds, err := l.CollectStarsUpperBounds(ctx, languages, ignoredLanguages)
+		if err != nil {
+			logger.Error("collecting stars upper bounds failed", slog.String("lang", language), slog.Any("error", err))
+			return
+		}
+		logger.Info("finished collecting", slog.String("lang", language), slog.Any("starsUpperBounds", starsUpperBounds))
+		ls = append(ls, x{language: language, starsUpperBounds: starsUpperBounds})
+	}
 
-				if count%maxConcurrent == 0 {
-					slog.Info("cooling down", slog.Int("count", count))
-					time.Sleep(time.Second * time.Duration(timeoutSec))
-				}
+	for _, ll := range ls {
+		languages := []string{ll.language}
+		ignoredLanguages := []string{}
 
-				go func(cursor, language string, maxStars int) {
-					defer wg.Done()
+		logger.Info("start loading repos", slog.String("lang", ll.language))
+		repos := l.LoadRepos(ctx, languages, ignoredLanguages, ll.starsUpperBounds, &timeoutCount)
+		logger.Info("finished loading repos", slog.String("lang", ll.language), slog.Int("timeoutCount", timeoutCount), slog.Int("repos", len(repos)))
 
-					_, err := c.SearchRepos(ctx, cursor, api.QueryArgs{
-						MinStars:         minStars,
-						MaxStars:         maxStars,
-						Languages:        []string{language},
-						IgnoredLanguages: []string{},
-					})
-					if err != nil {
-						slog.Error(
-							"failed fetching",
-							slog.String("cursor", cursor),
-							slog.String("language", language),
-							slog.Int("maxStars", maxStars),
-							slog.Any("error", err),
-						)
-					}
-				}(cursor, language, maxStars)
+		allRepos = append(allRepos, repos...)
+	}
+
+	f, err := os.Create("repos.csv")
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	w := csv.NewWriter(f)
+	for i, repo := range allRepos {
+		if i == 0 {
+			if err := w.Write(repo.CSVHeader()); err != nil {
+				log.Fatalln("error writing csv header:", err)
 			}
-			wg.Wait()
+		}
 
-			count++
-			slog.Info("count", slog.Int("count", count))
-			repos, err := c.SearchRepos(ctx, cursors[9], api.QueryArgs{
-				MinStars:         minStars,
-				MaxStars:         maxStars,
-				Languages:        []string{language},
-				IgnoredLanguages: []string{},
-			})
-			if err != nil {
-				slog.Error(
-					"failed fetching last cursor",
-					slog.String("cursor", cursors[9]),
-					slog.String("language", language),
-					slog.Int("maxStars", maxStars),
-					slog.Any("error", err),
-				)
-				return // TODO: implement retry
-			}
-
-			if len(repos) == 0 {
-				break
-			}
-			maxStars = repos[len(repos)-1].Stars
+		if err := w.Write(repo.CSVRecord()); err != nil {
+			log.Fatalln("error writing repo to csv:", err)
 		}
 	}
 
-	slog.Info("Finished")
+	w.Flush()
+	if err := w.Error(); err != nil {
+		log.Fatal(err)
+	}
 }
