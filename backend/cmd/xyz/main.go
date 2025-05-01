@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"encoding/csv"
+	"fmt"
 	"log"
 	"log/slog"
 	"os"
@@ -9,19 +11,6 @@ import (
 	"github.com/glup3/trendingrepos/api"
 	"github.com/glup3/trendingrepos/internal/loader"
 )
-
-var cursors = [10]string{
-	"",
-	"Y3Vyc29yOjEwMA==",
-	"Y3Vyc29yOjIwMA==",
-	"Y3Vyc29yOjMwMA==",
-	"Y3Vyc29yOjQwMA==",
-	"Y3Vyc29yOjUwMA==",
-	"Y3Vyc29yOjYwMA==",
-	"Y3Vyc29yOjcwMA==",
-	"Y3Vyc29yOjgwMA==",
-	"Y3Vyc29yOjkwMA==",
-}
 
 func main() {
 	ctx := context.Background()
@@ -31,16 +20,40 @@ func main() {
 	apiClient := api.NewAPIClient(apiKey)
 	l := loader.NewLoader(apiClient, logger)
 
-	languages := []string{"Python"}
+	language := "Go"
+	languages := []string{language}
 	ignoredLanguages := []string{}
 
+	logger.Info("start collecting stars upper bounds")
 	starsUpperBounds, err := l.CollectStarsUpperBounds(ctx, languages, ignoredLanguages)
 	if err != nil {
 		log.Println("collecting stars upper bounds failed", err)
 		return
 	}
+	logger.Info("finished collecting", slog.Any("starsUpperBounds", starsUpperBounds))
 
-	log.Println(starsUpperBounds)
+	repos := l.LoadRepos(ctx, languages, ignoredLanguages, starsUpperBounds)
 
-	l.LoadRepos(ctx, languages, ignoredLanguages, starsUpperBounds)
+	f, err := os.Create(fmt.Sprintf("%s.csv", language))
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	w := csv.NewWriter(f)
+	for i, repo := range repos {
+		if i == 0 {
+			if err := w.Write(repo.CSVHeader()); err != nil {
+				log.Fatalln("error writing csv header:", err)
+			}
+		}
+
+		if err := w.Write(repo.CSVRecord()); err != nil {
+			log.Fatalln("error writing repo to csv:", err)
+		}
+	}
+
+	w.Flush()
+	if err := w.Error(); err != nil {
+		log.Fatal(err)
+	}
 }

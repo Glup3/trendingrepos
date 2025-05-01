@@ -2,7 +2,6 @@ package loader
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 	"sync"
 	"time"
@@ -46,8 +45,12 @@ func (l *Loader) CollectStarsUpperBounds(ctx context.Context, languages, ignored
 	return starCounts, nil
 }
 
-func (l *Loader) LoadRepos(ctx context.Context, languages, ignoredLanguages []string, starsUpperBounds []int) {
-	var wg sync.WaitGroup
+func (l *Loader) LoadRepos(ctx context.Context, languages, ignoredLanguages []string, starsUpperBounds []int) []api.Repo {
+	var (
+		wg  sync.WaitGroup
+		mu  sync.Mutex
+		res []api.Repo
+	)
 	count := 0
 
 	for _, maxStars := range starsUpperBounds {
@@ -58,7 +61,7 @@ func (l *Loader) LoadRepos(ctx context.Context, languages, ignoredLanguages []st
 			go func(cursor string, maxStars int) {
 				defer wg.Done()
 
-				_, err := l.apiClient.SearchRepos(ctx, cursor, api.QueryArgs{
+				repos, err := l.apiClient.SearchRepos(ctx, cursor, api.QueryArgs{
 					MinStars:         200,
 					MaxStars:         maxStars,
 					Languages:        languages,
@@ -68,12 +71,17 @@ func (l *Loader) LoadRepos(ctx context.Context, languages, ignoredLanguages []st
 					l.logger.Error(
 						"failed fetching",
 						slog.String("cursor", cursor),
-						slog.String("language", fmt.Sprint(languages)),
-						slog.String("ignoredLanguages", fmt.Sprint(ignoredLanguages)),
+						slog.Any("language", languages),
+						slog.Any("ignoredLanguages", ignoredLanguages),
 						slog.Int("maxStars", maxStars),
 						slog.Any("error", err),
 					)
+					return
 				}
+
+				mu.Lock()
+				res = append(res, repos...)
+				mu.Unlock()
 			}(cursor, maxStars)
 
 			if count%MaxConcurrentRequests == 0 {
@@ -84,4 +92,6 @@ func (l *Loader) LoadRepos(ctx context.Context, languages, ignoredLanguages []st
 	}
 
 	wg.Wait()
+
+	return res
 }

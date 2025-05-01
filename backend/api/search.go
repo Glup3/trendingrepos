@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"strings"
 )
 
@@ -57,4 +58,24 @@ func buildQuery(args QueryArgs) string {
 		fmt.Fprintf(&b, "-language:%s ", lang)
 	}
 	return b.String()
+}
+
+func (r Repo) CSVRecord() []string {
+	return []string{
+		r.Id,
+		r.NameWithOwner,
+		strconv.Itoa(r.Stars),
+		r.PrimaryLanguage,
+		r.Description,
+	}
+}
+
+func (r Repo) CSVHeader() []string {
+	return []string{
+		"Id",
+		"NameWithOwner",
+		"Stars",
+		"PrimaryLanguage",
+		"Description",
+	}
 }
