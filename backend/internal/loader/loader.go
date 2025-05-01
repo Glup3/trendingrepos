@@ -47,9 +47,10 @@ func (l *Loader) CollectStarsUpperBounds(ctx context.Context, languages, ignored
 
 func (l *Loader) LoadRepos(ctx context.Context, languages, ignoredLanguages []string, starsUpperBounds []int) []api.Repo {
 	var (
-		wg  sync.WaitGroup
-		mu  sync.Mutex
-		res []api.Repo
+		wg   sync.WaitGroup
+		mu   sync.Mutex
+		res  []api.Repo
+		seen = make(map[string]struct{})
 	)
 	count := 0
 
@@ -80,7 +81,12 @@ func (l *Loader) LoadRepos(ctx context.Context, languages, ignoredLanguages []st
 				}
 
 				mu.Lock()
-				res = append(res, repos...)
+				for _, repo := range repos {
+					if _, exists := seen[repo.Id]; !exists {
+						seen[repo.Id] = struct{}{}
+						res = append(res, repo)
+					}
+				}
 				mu.Unlock()
 			}(cursor, maxStars)
 
