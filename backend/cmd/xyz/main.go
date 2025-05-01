@@ -32,7 +32,10 @@ func main() {
 	}
 	logger.Info("finished collecting", slog.Any("starsUpperBounds", starsUpperBounds))
 
-	repos := l.LoadRepos(ctx, languages, ignoredLanguages, starsUpperBounds)
+	logger.Info("start loading repos")
+	timeoutCount := 0
+	repos := l.LoadRepos(ctx, languages, ignoredLanguages, starsUpperBounds, &timeoutCount)
+	logger.Info("finished loading repos", slog.Int("timeoutCount", timeoutCount), slog.Int("repos", len(repos)))
 
 	f, err := os.Create(fmt.Sprintf("%s.csv", language))
 	if err != nil {

@@ -45,19 +45,18 @@ func (l *Loader) CollectStarsUpperBounds(ctx context.Context, languages, ignored
 	return starCounts, nil
 }
 
-func (l *Loader) LoadRepos(ctx context.Context, languages, ignoredLanguages []string, starsUpperBounds []int) []api.Repo {
+func (l *Loader) LoadRepos(ctx context.Context, languages, ignoredLanguages []string, starsUpperBounds []int, timeoutCount *int) []api.Repo {
 	var (
 		wg   sync.WaitGroup
 		mu   sync.Mutex
 		res  []api.Repo
 		seen = make(map[string]struct{})
 	)
-	count := 0
 
 	for _, maxStars := range starsUpperBounds {
 		for _, cursor := range Cursors {
 			wg.Add(1)
-			count++
+			*timeoutCount++
 
 			go func(cursor string, maxStars int) {
 				defer wg.Done()
@@ -90,8 +89,8 @@ func (l *Loader) LoadRepos(ctx context.Context, languages, ignoredLanguages []st
 				mu.Unlock()
 			}(cursor, maxStars)
 
-			if count%MaxConcurrentRequests == 0 {
-				l.logger.Info("cooling down", slog.Int("count", count))
+			if *timeoutCount%MaxConcurrentRequests == 0 {
+				l.logger.Info("cooling down", slog.Int("count", *timeoutCount))
 				time.Sleep(LoadingTimeout)
 			}
 		}
