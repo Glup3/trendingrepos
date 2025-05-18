@@ -4,6 +4,7 @@ import (
 	"context"
 	"log/slog"
 	"sync"
+	"time"
 
 	"github.com/glup3/trendingrepos/internal/api"
 	"golang.org/x/sync/errgroup"
@@ -77,4 +78,43 @@ func (l *Loader) LoadRepos(ctx context.Context, maxStars int) ([]api.Repo, error
 		return nil, err
 	}
 	return res, nil
+}
+
+func (l *Loader) LoadMultipleRepos(ctx context.Context, maxStarss []int) []api.Repo {
+	g := new(errgroup.Group)
+	var allRepos []api.Repo
+	var mu sync.Mutex
+
+	i := 0
+	for i < len(maxStarss) {
+		batchSize := MaxConcurrentRequests
+		if i+batchSize > len(maxStarss) {
+			batchSize = len(maxStarss) - i
+		}
+
+		for j := range batchSize {
+			g.Go(func() error {
+				maxStars := maxStarss[i+j]
+				l.logger.Info("fetching repos", slog.Int("maxStars", maxStars))
+				repos, err := l.LoadRepos(ctx, maxStars)
+				if err != nil {
+					return err
+				}
+				mu.Lock()
+				allRepos = append(allRepos, repos...)
+				mu.Unlock()
+				return nil
+			})
+		}
+
+		if err := g.Wait(); err != nil {
+			l.logger.Warn("failed fetching", slog.Any("error", err))
+			time.Sleep(SleepTimeout)
+			continue
+		}
+
+		time.Sleep(SleepTimeout)
+		i += batchSize
+	}
+	return allRepos
 }
