@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/glup3/trendingrepos/api"
+	"golang.org/x/sync/errgroup"
 )
 
 type Loader struct {
@@ -24,7 +25,6 @@ func NewLoader(apiClient *api.APIClient, logger *slog.Logger) *Loader {
 func (l *Loader) CollectStarsUpperBounds(ctx context.Context, languages, ignoredLanguages []string) ([]int, error) {
 	currStars := MaxStarsCount
 	starCounts := []int{currStars}
-
 	for currStars > MinStarsCount {
 		repos, err := l.apiClient.SearchRepos(ctx, Cursors[9], api.QueryArgs{
 			MinStars:         MinStarsCount,
@@ -88,15 +88,51 @@ func (l *Loader) LoadRepos(ctx context.Context, languages, ignoredLanguages []st
 				}
 				mu.Unlock()
 			}(cursor, maxStars)
-
-			if *timeoutCount%MaxConcurrentRequests == 0 {
-				l.logger.Info("cooling down", slog.Int("count", *timeoutCount))
-				time.Sleep(LoadingTimeout)
-			}
 		}
+
+		if *timeoutCount%MaxConcurrentRequests == 0 {
+			l.logger.Info("cooling down", slog.Int("count", *timeoutCount))
+			time.Sleep(LoadingTimeout)
+		}
+		l.logger.Info("fetching for star range", slog.Int("maxStars", maxStars))
 	}
 
 	wg.Wait()
 
 	return res
+}
+
+func (l *Loader) LoadRepos2(ctx context.Context, maxStars int) ([]api.Repo, error) {
+	g := new(errgroup.Group)
+	var mu sync.Mutex
+	var res []api.Repo
+
+	for _, cursor := range Cursors {
+		g.Go(func() error {
+			repos, err := l.apiClient.SearchRepos(ctx, cursor, api.QueryArgs{
+				MinStars:         200,
+				MaxStars:         maxStars,
+				Languages:        []string{},
+				IgnoredLanguages: []string{},
+			})
+			if err != nil {
+				l.logger.Error(
+					"failed fetching",
+					slog.String("cursor", cursor),
+					slog.Int("maxStars", maxStars),
+					slog.Any("error", err),
+				)
+				return err
+			}
+
+			mu.Lock()
+			res = append(res, repos...)
+			mu.Unlock()
+			return nil
+		})
+	}
+	if err := g.Wait(); err != nil {
+		return nil, err
+	}
+	return res, nil
 }
