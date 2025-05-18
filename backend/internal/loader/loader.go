@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/glup3/trendingrepos/api"
+	"github.com/glup3/trendingrepos/internal/api"
 	"golang.org/x/sync/errgroup"
 )
 

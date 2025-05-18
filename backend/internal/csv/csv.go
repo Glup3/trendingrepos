@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/glup3/trendingrepos/api"
+	"github.com/glup3/trendingrepos/internal/api"
 )
 
 func ToCSV(filename string, repos []api.Repo) error {

@@ -6,7 +6,7 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/glup3/trendingrepos/api"
+	"github.com/glup3/trendingrepos/internal/api"
 	"github.com/glup3/trendingrepos/internal/loader"
 )
 

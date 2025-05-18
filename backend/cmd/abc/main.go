@@ -11,7 +11,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/glup3/trendingrepos/api"
+	"github.com/glup3/trendingrepos/internal/api"
 	"github.com/glup3/trendingrepos/internal/csv"
 	"github.com/glup3/trendingrepos/internal/loader"
 	"golang.org/x/sync/errgroup"

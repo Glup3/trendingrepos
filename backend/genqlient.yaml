@@ -3,7 +3,7 @@
 schema: schema.graphql
 operations:
   - genqlient.graphql
-generated: api/api.go
+generated: internal/api/api.go
 
 bindings:
   URI:
