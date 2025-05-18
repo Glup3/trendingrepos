@@ -84,6 +84,7 @@ func (l *Loader) LoadMultipleRepos(ctx context.Context, maxStarss []int) []api.R
 	g := new(errgroup.Group)
 	var allRepos []api.Repo
 	var mu sync.Mutex
+	seen := make(map[string]struct{})
 
 	i := 0
 	for i < len(maxStarss) {
@@ -101,7 +102,12 @@ func (l *Loader) LoadMultipleRepos(ctx context.Context, maxStarss []int) []api.R
 					return err
 				}
 				mu.Lock()
-				allRepos = append(allRepos, repos...)
+				for _, repo := range repos {
+					if _, exists := seen[repo.Id]; !exists {
+						seen[repo.Id] = struct{}{}
+						allRepos = append(allRepos, repo)
+					}
+				}
 				mu.Unlock()
 				return nil
 			})
