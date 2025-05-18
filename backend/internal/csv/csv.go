@@ -44,22 +44,26 @@ func ReadCsvFile(filePath string) ([]api.Repo, error) {
 		return nil, err
 	}
 
-	repos := make([]api.Repo, len(records))
+	var repos []api.Repo
 	for i, r := range records {
 		if i == 0 {
 			continue
+		}
+		if len(r) < 5 {
+			continue // skip malformed rows
 		}
 		stars, err := strconv.Atoi(r[2])
 		if err != nil {
 			return nil, err
 		}
-		repos[i] = api.Repo{
+		repo := api.Repo{
 			Id:              r[0],
 			NameWithOwner:   r[1],
 			Stars:           stars,
 			PrimaryLanguage: r[3],
 			Description:     r[4],
 		}
+		repos = append(repos, repo)
 	}
 
 	return repos, err
