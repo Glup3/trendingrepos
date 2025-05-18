@@ -3,13 +3,14 @@ package loader
 import "time"
 
 const (
+	PageSize              = 100
 	MaxStarsCount         = 1_000_000
 	MinStarsCount         = 200
-	MaxConcurrentRequests = 100
-	LoadingTimeout        = time.Second * time.Duration(20)
+	MaxConcurrentRequests = 20
+	LoadingTimeout        = time.Second * time.Duration(90)
 )
 
-// These are 10 next page cursors for page size of 100
+// These are 10 next page cursors for a 100 pageSize
 var Cursors = [10]string{
 	"",
 	"Y3Vyc29yOjEwMA==",

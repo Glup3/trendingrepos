@@ -7,8 +7,6 @@ import (
 	"strings"
 )
 
-const pageSize = 100
-
 type Repo struct {
 	Id              string
 	Stars           int
@@ -18,20 +16,18 @@ type Repo struct {
 }
 
 type QueryArgs struct {
-	MinStars         int
-	MaxStars         int
-	Languages        []string
-	IgnoredLanguages []string
+	PageSize int
+	MinStars int
+	MaxStars int
+	Cursor   string
 }
 
-func (c *APIClient) SearchRepos(ctx context.Context, cursor string, queryArgs QueryArgs) ([]Repo, error) {
-	repos := make([]Repo, 0, pageSize)
-
-	resp, err := searchRepos(ctx, c.gClient, buildQuery(queryArgs), pageSize, cursor)
+func (c *APIClient) SearchRepos(ctx context.Context, queryArgs QueryArgs) ([]Repo, error) {
+	resp, err := searchRepos(ctx, c.gClient, buildQuery(queryArgs), queryArgs.PageSize, queryArgs.Cursor)
 	if err != nil {
 		return nil, err
 	}
-
+	repos := make([]Repo, 0, len(resp.Search.Edges))
 	for _, edge := range resp.Search.Edges {
 		repo := edge.Node.(*searchReposSearchSearchResultItemConnectionEdgesSearchResultItemEdgeNodeRepository)
 		repos = append(repos, Repo{
@@ -42,7 +38,6 @@ func (c *APIClient) SearchRepos(ctx context.Context, cursor string, queryArgs Qu
 			PrimaryLanguage: repo.PrimaryLanguage.Name,
 		})
 	}
-
 	return repos, nil
 }
 
@@ -51,12 +46,6 @@ func buildQuery(args QueryArgs) string {
 	b.WriteString("is:public ")
 	b.WriteString("fork:true ")
 	fmt.Fprintf(&b, "stars:%d..%d ", args.MinStars, args.MaxStars)
-	for _, lang := range args.Languages {
-		fmt.Fprintf(&b, "language:%s ", lang)
-	}
-	for _, lang := range args.IgnoredLanguages {
-		fmt.Fprintf(&b, "-language:%s ", lang)
-	}
 	return b.String()
 }
 

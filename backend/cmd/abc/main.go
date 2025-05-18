@@ -65,7 +65,7 @@ func run(ctx context.Context) error {
 			g.Go(func() error {
 				maxStars := starsBounds[i+j]
 				logger.Info("fetching repos", slog.Int("maxStars", maxStars))
-				repos, err := l.LoadRepos2(ctx, maxStars)
+				repos, err := l.LoadRepos(ctx, maxStars)
 				if err != nil {
 					return err
 				}

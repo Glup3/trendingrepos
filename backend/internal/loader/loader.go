@@ -4,7 +4,6 @@ import (
 	"context"
 	"log/slog"
 	"sync"
-	"time"
 
 	"github.com/glup3/trendingrepos/internal/api"
 	"golang.org/x/sync/errgroup"
@@ -26,11 +25,11 @@ func (l *Loader) CollectStarsUpperBounds(ctx context.Context, languages, ignored
 	currStars := MaxStarsCount
 	starCounts := []int{currStars}
 	for currStars > MinStarsCount {
-		repos, err := l.apiClient.SearchRepos(ctx, Cursors[9], api.QueryArgs{
-			MinStars:         MinStarsCount,
-			MaxStars:         currStars,
-			Languages:        languages,
-			IgnoredLanguages: ignoredLanguages,
+		repos, err := l.apiClient.SearchRepos(ctx, api.QueryArgs{
+			PageSize: PageSize,
+			Cursor:   Cursors[9],
+			MinStars: MinStarsCount,
+			MaxStars: currStars,
 		})
 		if err != nil {
 			return nil, err
@@ -45,75 +44,18 @@ func (l *Loader) CollectStarsUpperBounds(ctx context.Context, languages, ignored
 	return starCounts, nil
 }
 
-func (l *Loader) LoadRepos(ctx context.Context, languages, ignoredLanguages []string, starsUpperBounds []int, timeoutCount *int) []api.Repo {
-	var (
-		wg   sync.WaitGroup
-		mu   sync.Mutex
-		res  []api.Repo
-		seen = make(map[string]struct{})
-	)
-
-	for _, maxStars := range starsUpperBounds {
-		for _, cursor := range Cursors {
-			wg.Add(1)
-			*timeoutCount++
-
-			go func(cursor string, maxStars int) {
-				defer wg.Done()
-
-				repos, err := l.apiClient.SearchRepos(ctx, cursor, api.QueryArgs{
-					MinStars:         200,
-					MaxStars:         maxStars,
-					Languages:        languages,
-					IgnoredLanguages: ignoredLanguages,
-				})
-				if err != nil {
-					l.logger.Error(
-						"failed fetching",
-						slog.String("cursor", cursor),
-						slog.Any("language", languages),
-						slog.Any("ignoredLanguages", ignoredLanguages),
-						slog.Int("maxStars", maxStars),
-						slog.Any("error", err),
-					)
-					return
-				}
-
-				mu.Lock()
-				for _, repo := range repos {
-					if _, exists := seen[repo.Id]; !exists {
-						seen[repo.Id] = struct{}{}
-						res = append(res, repo)
-					}
-				}
-				mu.Unlock()
-			}(cursor, maxStars)
-		}
-
-		if *timeoutCount%MaxConcurrentRequests == 0 {
-			l.logger.Info("cooling down", slog.Int("count", *timeoutCount))
-			time.Sleep(LoadingTimeout)
-		}
-		l.logger.Info("fetching for star range", slog.Int("maxStars", maxStars))
-	}
-
-	wg.Wait()
-
-	return res
-}
-
-func (l *Loader) LoadRepos2(ctx context.Context, maxStars int) ([]api.Repo, error) {
+func (l *Loader) LoadRepos(ctx context.Context, maxStars int) ([]api.Repo, error) {
 	g := new(errgroup.Group)
 	var mu sync.Mutex
 	var res []api.Repo
 
 	for _, cursor := range Cursors {
 		g.Go(func() error {
-			repos, err := l.apiClient.SearchRepos(ctx, cursor, api.QueryArgs{
-				MinStars:         200,
-				MaxStars:         maxStars,
-				Languages:        []string{},
-				IgnoredLanguages: []string{},
+			repos, err := l.apiClient.SearchRepos(ctx, api.QueryArgs{
+				PageSize: PageSize,
+				Cursor:   cursor,
+				MinStars: MinStarsCount,
+				MaxStars: maxStars,
 			})
 			if err != nil {
 				l.logger.Error(
