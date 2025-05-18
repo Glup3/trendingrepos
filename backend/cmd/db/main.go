@@ -4,11 +4,15 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"os/signal"
+	"sync"
 
+	"github.com/glup3/trendingrepos/internal/api"
 	"github.com/glup3/trendingrepos/internal/csv"
 	"github.com/glup3/trendingrepos/internal/db"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/robfig/cron/v3"
 )
 
 func main() {
@@ -20,6 +24,9 @@ func main() {
 }
 
 func run(ctx context.Context) error {
+	ctx, cancel := signal.NotifyContext(ctx, os.Interrupt)
+	defer cancel()
+
 	repos, err := csv.ReadCsvFile("./repos.csv")
 	if err != nil {
 		return err
@@ -31,6 +38,29 @@ func run(ctx context.Context) error {
 	}
 	defer pool.Close()
 
+	c := cron.New()
+	c.AddFunc("@every 8s", func() {
+		err := logic(ctx, pool, repos)
+		if err != nil {
+			fmt.Println(err)
+		}
+	})
+	c.Start()
+
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		<-ctx.Done()
+		c.Stop()
+	}()
+	wg.Wait()
+	return nil
+}
+
+func logic(ctx context.Context, pool *pgxpool.Pool, repos []api.Repo) error {
+	fmt.Println("doing db stuff")
+	defer fmt.Println("finished db stuff")
 	queries := db.New(pool)
 	tx, err := pool.Begin(ctx)
 	if err != nil {
