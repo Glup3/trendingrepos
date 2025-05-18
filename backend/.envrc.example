@@ -1,0 +1,8 @@
+export PAT_TOKEN=ghp_XXX
+
+export GOOSE_DRIVER=postgres
+export GOOSE_DBSTRING=postgres://username:pw@ip:5432/postgres
+export GOOSE_MIGRATION_DIR=./internal/db/migrations
+export GOOSE_TABLE=postgres
+
+export DATABASE_URL=$GOOSE_DBSTRING
