@@ -1,14 +1,14 @@
 -- +goose Up
 CREATE TABLE repositories (
-    github_id VARCHAR(255) PRIMARY KEY,
-    name_with_owner VARCHAR(255) NOT NULL UNIQUE,
+    github_id TEXT NOT NULL PRIMARY KEY,
+    name_with_owner TEXT NOT NULL UNIQUE,
     description TEXT,
     stars INTEGER NOT NULL,
     primary_language TEXT
 );
 
 CREATE TABLE stars (
-    github_id VARCHAR(255) NOT NULL,
+    github_id TEXT NOT NULL,
     stars INT NOT NULL,
     time TIMESTAMPTZ NOT NULL
 );
