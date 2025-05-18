@@ -1,0 +1,22 @@
+-- +goose Up
+CREATE TABLE repositories (
+    github_id VARCHAR(255) PRIMARY KEY,
+    name_with_owner VARCHAR(255) NOT NULL UNIQUE,
+    description TEXT,
+    stars INTEGER NOT NULL,
+    primary_language TEXT
+);
+
+CREATE TABLE stars (
+    github_id VARCHAR(255) NOT NULL,
+    stars INT NOT NULL,
+    time TIMESTAMPTZ NOT NULL
+);
+
+SELECT create_hypertable('stars', by_range('time'));
+
+
+
+-- +goose Down
+DROP TABLE repositories;
+DROP TABLE stars;
