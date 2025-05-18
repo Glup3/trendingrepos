@@ -24,7 +24,7 @@ var starsBounds string
 
 func main() {
 	ctx := context.Background()
-	logger := slog.New(slog.NewTextHandler(os.Stderr, nil))
+	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 	if err := run(ctx, logger); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
