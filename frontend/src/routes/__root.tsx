@@ -54,6 +54,13 @@ export const Route = createRootRouteWithContext<{
       { rel: 'manifest', href: '/site.webmanifest', color: '#fffff' },
       { rel: 'icon', href: '/favicon.ico' },
     ],
+    scripts: [
+      {
+        defer: true,
+        src: 'https://umami.coolify.glup3.dev/script.js',
+        'data-website-id': 'f840fddd-76ed-44e9-a3cc-be976c57cf00',
+      },
+    ],
   }),
   errorComponent: (props) => {
     return (
