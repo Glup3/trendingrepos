@@ -5,6 +5,7 @@ yarn.lock
 .DS_Store
 .cache
 .env
+.envrc
 .vercel
 .output
 .vinxi

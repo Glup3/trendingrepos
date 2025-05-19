@@ -15,6 +15,8 @@
     "@tanstack/react-router-devtools": "^1.117.1",
     "@tanstack/react-router-with-query": "^1.117.1",
     "@tanstack/react-start": "^1.117.2",
+    "kysely": "^0.28.2",
+    "pg": "^8.16.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "redaxios": "^0.5.1",
@@ -23,6 +25,7 @@
   },
   "devDependencies": {
     "@types/node": "^22.5.4",
+    "@types/pg": "^8.15.2",
     "@types/react": "^19.0.8",
     "@types/react-dom": "^19.0.3",
     "autoprefixer": "^10.4.20",
