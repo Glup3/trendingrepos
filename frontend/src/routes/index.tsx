@@ -59,9 +59,13 @@ const Component = () => {
 }
 
 const getStarsTrendMonthly = createServerFn().handler(async () => {
-  return await db
+  const start = performance.now()
+  const data = await db
     .selectFrom('stars_trend_monthly')
     .limit(25)
     .selectAll()
     .execute()
+  const end = performance.now()
+  console.log(`Time taken to fetch data is ${end - start}ms`)
+  return data
 })
