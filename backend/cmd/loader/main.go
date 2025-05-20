@@ -58,6 +58,7 @@ func run(ctx context.Context, logger *slog.Logger) error {
 		if err != nil {
 			logger.Error("persisting data failed", slog.Any("erro", err))
 		}
+		logger.Info("finished persisting data")
 	})
 	c.Start()
 	logger.Info("application started")
