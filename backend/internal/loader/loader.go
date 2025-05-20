@@ -87,8 +87,8 @@ func (l *Loader) LoadMultipleRepos(ctx context.Context, maxStarss []int) []api.R
 			batchSize = len(maxStarss) - i
 		}
 
+		l.logger.Info("fetching repos batch", slog.Int("i", i), slog.Any("maxStarss", maxStarss[i:i+batchSize]))
 		for j := range batchSize {
-			l.logger.Info("fetching repos batch", slog.Int("i", i), slog.Any("maxStarss", maxStarss[i:i+batchSize]))
 			g.Go(func() error {
 				maxStars := maxStarss[i+j]
 				repos, err := l.LoadRepos(ctx, maxStars)
