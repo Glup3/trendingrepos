@@ -53,6 +53,7 @@ func run(ctx context.Context, logger *slog.Logger) error {
 
 	c.AddFunc("0 * * * *", func() {
 		repos := l.LoadMultipleRepos(ctx, maxStarss)
+		logger.Info("finished loading repos - persisting now", slog.Int("repos", len(repos)))
 		err := logic(ctx, pool, repos)
 		if err != nil {
 			logger.Error("persisting data failed", slog.Any("erro", err))

@@ -59,12 +59,6 @@ func (l *Loader) LoadRepos(ctx context.Context, maxStars int) ([]api.Repo, error
 				MaxStars: maxStars,
 			})
 			if err != nil {
-				l.logger.Error(
-					"failed fetching",
-					slog.String("cursor", cursor),
-					slog.Int("maxStars", maxStars),
-					slog.Any("error", err),
-				)
 				return err
 			}
 
@@ -94,9 +88,9 @@ func (l *Loader) LoadMultipleRepos(ctx context.Context, maxStarss []int) []api.R
 		}
 
 		for j := range batchSize {
+			l.logger.Info("fetching repos batch", slog.Any("maxStarss", maxStarss[i:i+batchSize]))
 			g.Go(func() error {
 				maxStars := maxStarss[i+j]
-				l.logger.Info("fetching repos", slog.Int("maxStars", maxStars))
 				repos, err := l.LoadRepos(ctx, maxStars)
 				if err != nil {
 					return err
@@ -114,8 +108,8 @@ func (l *Loader) LoadMultipleRepos(ctx context.Context, maxStarss []int) []api.R
 		}
 
 		if err := g.Wait(); err != nil {
-			l.logger.Warn("failed fetching", slog.Any("error", err))
-			time.Sleep(SleepTimeout)
+			l.logger.Warn("failed fetching - will sleep", slog.Any("error", err))
+			time.Sleep(ErrorSleepTimeout)
 			continue
 		}
 
