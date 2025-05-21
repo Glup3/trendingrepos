@@ -1,10 +1,12 @@
 import { Selectable } from 'kysely'
 
 export interface Database {
-  stars_trend_monthly: StarsTrendMonthlyTable
+  stars_trend_daily: StarsTrendViewTable
+  stars_trend_weekly: StarsTrendViewTable
+  stars_trend_monthly: StarsTrendViewTable
 }
 
-export interface StarsTrendMonthlyTable {
+export interface StarsTrendViewTable {
   github_id: string
   name_with_owner: string
   primary_language: string | null
@@ -14,4 +16,4 @@ export interface StarsTrendMonthlyTable {
   stars_diff: number
 }
 
-export type StarsTrendMonthly = Selectable<StarsTrendMonthlyTable>
+export type StarsTrendView = Selectable<StarsTrendViewTable>
