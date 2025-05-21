@@ -57,3 +57,23 @@ func (s *RepoService) Insert(ctx context.Context, repos []api.Repo) error {
 	}
 	return tx.Commit(ctx)
 }
+
+func (s *RepoService) RefreshViews(ctx context.Context) error {
+	_, err := s.db.Exec(ctx, `CALL refresh_continuous_aggregate ('stars_daily', NULL, NULL)`)
+	if err != nil {
+		return err
+	}
+	_, err = s.db.Exec(ctx, `REFRESH MATERIALIZED VIEW stars_trend_monthly`)
+	if err != nil {
+		return err
+	}
+	_, err = s.db.Exec(ctx, `REFRESH MATERIALIZED VIEW stars_trend_weekly`)
+	if err != nil {
+		return err
+	}
+	_, err = s.db.Exec(ctx, `REFRESH MATERIALIZED VIEW stars_trend_daily`)
+	if err != nil {
+		return err
+	}
+	return nil
+}
