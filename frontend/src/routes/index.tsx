@@ -106,13 +106,16 @@ const Component = () => {
             <thead className="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200">
               <tr className="text-nowrap">
                 <th className="text-left px-6 py-3 text-sm font-semibold">
-                  ⭐ Stars
+                  📈 Stars
                 </th>
                 <th className="text-left px-6 py-3 text-sm font-semibold">
                   📁 Name
                 </th>
                 <th className="text-left px-6 py-3 text-sm font-semibold">
                   💻 Language
+                </th>
+                <th className="text-left px-6 py-3 text-sm font-semibold">
+                  ⭐ Total Stars
                 </th>
                 <th className="text-left px-6 py-3 text-sm font-semibold">
                   📝 Description
@@ -129,8 +132,19 @@ const Component = () => {
                   <td className="px-6 py-4 font-medium text-right">
                     {repo.stars_diff}
                   </td>
-                  <td className="px-6 py-4">{repo.name_with_owner}</td>
+                  <td className="px-6 py-4">
+                    <a
+                      href={`https://github.com/${repo.name_with_owner}`}
+                      target="_blank"
+                      className="hover:underline"
+                    >
+                      {repo.name_with_owner}
+                    </a>
+                  </td>
                   <td className="px-6 py-4">{repo.primary_language}</td>
+                  <td className="px-6 py-4 font-medium text-right">
+                    {repo.stars_today}
+                  </td>
                   <td className="px-6 py-4 line-clamp-2">{repo.description}</td>
                 </tr>
               ))}
