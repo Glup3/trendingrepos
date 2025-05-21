@@ -12,9 +12,7 @@ import (
 	"sync"
 
 	"github.com/glup3/trendingrepos/internal/api"
-	"github.com/glup3/trendingrepos/internal/db"
 	"github.com/glup3/trendingrepos/internal/loader"
-	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/robfig/cron/v3"
 )
@@ -46,6 +44,8 @@ func run(ctx context.Context, logger *slog.Logger) error {
 	}
 	defer pool.Close()
 
+	repoService := loader.NewRepoService(pool)
+
 	maxStarss, err := loadMaxStarss()
 	if err != nil {
 		return err
@@ -54,7 +54,7 @@ func run(ctx context.Context, logger *slog.Logger) error {
 	c.AddFunc("0 * * * *", func() {
 		repos := l.LoadMultipleRepos(ctx, maxStarss)
 		logger.Info("finished loading repos - persisting now", slog.Int("repos", len(repos)))
-		err := logic(ctx, pool, repos)
+		err := repoService.Insert(ctx, repos)
 		if err != nil {
 			logger.Error("persisting data failed", slog.Any("erro", err))
 		}
@@ -86,42 +86,4 @@ func loadMaxStarss() ([]int, error) {
 		starsBounds[i] = s
 	}
 	return starsBounds, nil
-}
-
-func logic(ctx context.Context, pool *pgxpool.Pool, repos []api.Repo) error {
-	queries := db.New(pool)
-	tx, err := pool.Begin(ctx)
-	if err != nil {
-		return err
-	}
-	defer tx.Rollback(ctx)
-
-	qtx := queries.WithTx(tx)
-	err = qtx.CreateTempRepositories(ctx)
-	if err != nil {
-		return err
-	}
-	params := make([]db.InsertTempRepositoriesParams, len(repos))
-	for i, repo := range repos {
-		params[i] = db.InsertTempRepositoriesParams{
-			GithubID:        repo.Id,
-			NameWithOwner:   repo.NameWithOwner,
-			Description:     pgtype.Text{String: repo.Description, Valid: true},
-			Stars:           int32(repo.Stars),
-			PrimaryLanguage: pgtype.Text{String: repo.PrimaryLanguage, Valid: true},
-		}
-	}
-	_, err = qtx.InsertTempRepositories(ctx, params)
-	if err != nil {
-		return err
-	}
-	err = qtx.InsertRepositories(ctx)
-	if err != nil {
-		return err
-	}
-	err = qtx.InsertStars(ctx)
-	if err != nil {
-		return err
-	}
-	return tx.Commit(ctx)
 }
