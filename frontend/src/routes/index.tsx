@@ -44,7 +44,7 @@ const Component = () => {
         <tbody>
           {data.map((repo) => (
             <tr key={repo.github_id}>
-              <td className="text-right">{repo.diff}</td>
+              <td className="text-right">{repo.stars_diff}</td>
               <td className="line-clamp-1 text-center">
                 {repo.name_with_owner}
               </td>
@@ -62,6 +62,8 @@ const getStarsTrendMonthly = createServerFn().handler(async () => {
   const start = performance.now()
   const data = await db
     .selectFrom('stars_trend_monthly')
+    .where('stars_diff', '>=', 5)
+    .orderBy('stars_diff', 'desc')
     .limit(25)
     .selectAll()
     .execute()
