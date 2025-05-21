@@ -6,11 +6,11 @@ import {
 } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import { createServerFn } from '@tanstack/react-start'
-import { db } from '~/db/database'
-import { z } from 'zod'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { twMerge } from 'tailwind-merge'
-import { useEffect } from 'react'
+import { z } from 'zod'
+
+import { db } from '~/db/database'
 
 export const Route = createFileRoute('/')({
   component: Home,
