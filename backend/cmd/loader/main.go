@@ -7,8 +7,6 @@ import (
 	"log/slog"
 	"os"
 	"os/signal"
-	"strconv"
-	"strings"
 	"sync"
 
 	"github.com/glup3/trendingrepos/internal/api"
@@ -16,9 +14,6 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/robfig/cron/v3"
 )
-
-//go:embed stars.txt
-var starsBounds string
 
 func main() {
 	ctx := context.Background()
@@ -46,13 +41,8 @@ func run(ctx context.Context, logger *slog.Logger) error {
 
 	repoService := loader.NewRepoService(pool)
 
-	maxStarss, err := loadMaxStarss()
-	if err != nil {
-		return err
-	}
-
 	c.AddFunc("0 * * * *", func() {
-		repos := l.LoadMultipleRepos(ctx, maxStarss)
+		repos := l.LoadMultipleRepos(ctx, loader.StarsUpperBounds)
 		logger.Info("finished loading repos - persisting now", slog.Int("repos", len(repos)))
 		err := repoService.Insert(ctx, repos)
 		if err != nil {
@@ -78,17 +68,4 @@ func run(ctx context.Context, logger *slog.Logger) error {
 	}()
 	wg.Wait()
 	return nil
-}
-
-func loadMaxStarss() ([]int, error) {
-	starsBoundsString := strings.Split(strings.TrimSpace(starsBounds), "\n")
-	starsBounds := make([]int, len(starsBoundsString))
-	for i, v := range starsBoundsString {
-		s, err := strconv.Atoi(v)
-		if err != nil {
-			return nil, err
-		}
-		starsBounds[i] = s
-	}
-	return starsBounds, nil
 }

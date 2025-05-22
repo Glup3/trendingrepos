@@ -26,7 +26,7 @@ func NewLoader(apiClient *api.APIClient, logger *slog.Logger) *Loader {
 func (l *Loader) CollectStarsUpperBounds(ctx context.Context, languages, ignoredLanguages []string) ([]int, error) {
 	currStars := MaxStarsCount
 	starCounts := []int{currStars}
-	fmt.Println(currStars)
+	fmt.Printf("%d,\n", currStars)
 	for currStars > MinStarsCount {
 		repos, err := l.apiClient.SearchRepos(ctx, api.QueryArgs{
 			PageSize: PageSize,
@@ -41,7 +41,7 @@ func (l *Loader) CollectStarsUpperBounds(ctx context.Context, languages, ignored
 			break
 		}
 		currStars = repos[len(repos)-1].Stars
-		fmt.Println(currStars)
+		fmt.Printf("%d,\n", currStars)
 		starCounts = append(starCounts, currStars)
 	}
 
