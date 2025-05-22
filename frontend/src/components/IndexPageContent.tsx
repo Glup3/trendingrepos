@@ -11,7 +11,11 @@ import { twMerge } from 'tailwind-merge'
 import { z } from 'vinxi'
 
 import { db } from '~/db/database'
-import { maxPage } from '~/utils/searchSchemas'
+import { maxPage, timePeriods } from '~/utils/searchSchemas'
+
+import { TimeFilterBar } from './TimeFilterBar'
+
+const route = getRouteApi('/')
 
 export const IndexPageContent = () => {
   return (
@@ -28,34 +32,49 @@ export const IndexPageContent = () => {
         </div>
       </div>
 
+      <TimeFilterBar />
+
       <Component />
     </main>
   )
 }
 
-const trendQueryOptions = (page: number) =>
+const timePeriodMap: Record<
+  (typeof timePeriods)[number],
+  'stars_trend_daily' | 'stars_trend_weekly' | 'stars_trend_monthly'
+> = {
+  daily: 'stars_trend_daily',
+  weekly: 'stars_trend_weekly',
+  monthly: 'stars_trend_monthly',
+}
+
+const trendQueryOptions = (
+  timePeriod: (typeof timePeriods)[number],
+  page: number,
+) =>
   queryOptions({
-    queryKey: ['stars_trend', page],
-    queryFn: () => getStarsTrend({ data: { page: page - 1 } }),
+    queryKey: ['stars_trend', timePeriod, page],
+    queryFn: () =>
+      getStarsTrend({
+        data: { page: page - 1, timePeriod: timePeriodMap[timePeriod] },
+      }),
     placeholderData: keepPreviousData,
     refetchOnWindowFocus: false,
     staleTime: Infinity,
   })
 
-const route = getRouteApi('/')
-
 const Component = () => {
   const queryClient = useQueryClient()
-  const { page } = route.useSearch()
+  const { page, time } = route.useSearch()
   const { data, isPending, isFetching, isError, isPlaceholderData } = useQuery(
-    trendQueryOptions(page),
+    trendQueryOptions(time, page),
   )
 
   useEffect(() => {
     if (!isPlaceholderData) {
-      queryClient.prefetchQuery(trendQueryOptions(page + 1))
+      queryClient.prefetchQuery(trendQueryOptions(time, page + 1))
     }
-  }, [data, isPlaceholderData, page, queryClient])
+  }, [data, isPlaceholderData, time, page, queryClient])
 
   if (isPending) {
     return <div>Loading...</div>
@@ -159,6 +178,11 @@ const Component = () => {
 const pageSize = 25
 const paramsSchema = z.object({
   page: z.number().min(0).max(maxPage),
+  timePeriod: z.enum([
+    'stars_trend_daily',
+    'stars_trend_weekly',
+    'stars_trend_monthly',
+  ]),
 })
 
 const getStarsTrend = createServerFn()
@@ -166,7 +190,7 @@ const getStarsTrend = createServerFn()
   .handler(async ({ data }) => {
     const start = performance.now()
     const repos = await db
-      .selectFrom('stars_trend_daily')
+      .selectFrom(`${data.timePeriod} as view`)
       .where('stars_diff', '>=', 5)
       .orderBy('stars_diff', 'desc')
       .limit(pageSize)
