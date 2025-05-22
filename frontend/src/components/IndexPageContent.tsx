@@ -33,6 +33,7 @@ export const IndexPageContent = () => {
             ...prev,
             page: prev.page - 1,
           })}
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
         >
           Prev
         </Link>
@@ -45,6 +46,7 @@ export const IndexPageContent = () => {
             ...prev,
             page: prev.page + 1,
           })}
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
         >
           Next
         </Link>
