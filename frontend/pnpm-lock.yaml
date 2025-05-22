@@ -26,6 +26,9 @@ importers:
       '@tanstack/react-start':
         specifier: ^1.117.2
         version: 1.120.5(@tanstack/react-router@1.120.5(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@types/node@22.15.19)(db0@0.3.2)(ioredis@5.6.1)(jiti@2.4.2)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(terser@5.39.2)(tsx@4.19.4)(vite@6.3.5(@types/node@22.15.19)(jiti@2.4.2)(terser@5.39.2)(tsx@4.19.4)(yaml@2.8.0))(yaml@2.8.0)
+      '@tanstack/zod-adapter':
+        specifier: ^1.120.5
+        version: 1.120.5(@tanstack/react-router@1.120.5(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(zod@3.25.17)
       kysely:
         specifier: ^0.28.2
         version: 0.28.2
@@ -1218,6 +1221,13 @@ packages:
   '@tanstack/virtual-file-routes@1.115.0':
     resolution: {integrity: sha512-XLUh1Py3AftcERrxkxC5Y5m5mfllRH3YR6YVlyjFgI2Tc2Ssy2NKmQFQIafoxfW459UJ8Dn81nWKETEIJifE4g==}
     engines: {node: '>=12'}
+
+  '@tanstack/zod-adapter@1.120.5':
+    resolution: {integrity: sha512-EXFVr2rw9qy5Ad9fogxo++A10A555XrhNyKZ7pnPV84HU/Xy3C2zP8UaaoTlTDr+/BJ2yzyyM47yK62a03ofbA==}
+    engines: {node: '>=12'}
+    peerDependencies:
+      '@tanstack/react-router': '>=1.43.2'
+      zod: ^3.23.8
 
   '@trivago/prettier-plugin-sort-imports@5.2.2':
     resolution: {integrity: sha512-fYDQA9e6yTNmA13TLVSA+WMQRc5Bn/c0EUBditUHNfMMxN7M82c38b1kEggVE3pLpZ0FwkwJkUEKMiOi52JXFA==}
@@ -5271,6 +5281,11 @@ snapshots:
   '@tanstack/store@0.7.0': {}
 
   '@tanstack/virtual-file-routes@1.115.0': {}
+
+  '@tanstack/zod-adapter@1.120.5(@tanstack/react-router@1.120.5(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(zod@3.25.17)':
+    dependencies:
+      '@tanstack/react-router': 1.120.5(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
+      zod: 3.25.17
 
   '@trivago/prettier-plugin-sort-imports@5.2.2(prettier@3.5.3)':
     dependencies:
