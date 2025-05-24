@@ -6,10 +6,10 @@ const (
 	PageSize              = 100
 	MaxStarsCount         = 1_000_000
 	MinStarsCount         = 200
-	MaxConcurrentRequests = 15
+	MaxConcurrentRequests = 20
 
 	SleepTimeout      = time.Second * time.Duration(90)
-	ErrorSleepTimeout = time.Second * time.Duration(180)
+	ErrorSleepTimeout = time.Second * time.Duration(240)
 )
 
 // These are 10 next page cursors for a 100 pageSize

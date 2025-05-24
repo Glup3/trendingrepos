@@ -8,7 +8,6 @@ import (
 	"os"
 	"os/signal"
 	"sync"
-	"time"
 
 	"github.com/glup3/trendingrepos/internal/api"
 	"github.com/glup3/trendingrepos/internal/loader"
@@ -42,9 +41,14 @@ func run(ctx context.Context, logger *slog.Logger) error {
 
 	repoService := loader.NewRepoService(pool)
 
+	var mu sync.Mutex
 	c.AddFunc("0 * * * *", func() {
-		ctx, cancel := context.WithTimeout(ctx, time.Minute*40)
-		defer cancel()
+		if !mu.TryLock() {
+			logger.Warn("previous cron job is still running, skipping this execution")
+			return
+		}
+		defer mu.Unlock()
+
 		repos := l.LoadMultipleRepos(ctx, loader.StarsUpperBounds)
 		logger.Info("finished loading repos - persisting now", slog.Int("repos", len(repos)))
 		err := repoService.Insert(ctx, repos)

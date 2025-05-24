@@ -96,7 +96,7 @@ func (l *Loader) LoadMultipleRepos(ctx context.Context, maxStarss []int) []api.R
 				maxStars := maxStarss[i+j]
 				repos, err := l.LoadRepos(ctx, maxStars)
 				if err != nil {
-					return err
+					return fmt.Errorf("batchSize %d failed: %w", i, err)
 				}
 				mu.Lock()
 				for _, repo := range repos {
@@ -116,8 +116,10 @@ func (l *Loader) LoadMultipleRepos(ctx context.Context, maxStarss []int) []api.R
 			continue
 		}
 
-		time.Sleep(SleepTimeout)
 		i += batchSize
+		if i < len(maxStarss) {
+			time.Sleep(SleepTimeout)
+		}
 	}
 	return allRepos
 }
