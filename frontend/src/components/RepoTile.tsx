@@ -53,7 +53,7 @@ export const RepoTile = ({ repo }: { repo: Repo }) => {
 
         <span>⭐ {repo.stars.toLocaleString('en-US')}</span>
 
-        <span className="font-semibold">
+        <span className="font-semibold text-[#4ade80]">
           +{repo.starsGained.toLocaleString('en-US')} 📈
         </span>
       </div>
