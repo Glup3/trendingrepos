@@ -60,3 +60,9 @@ export const RepoTile = ({ repo }: { repo: Repo }) => {
     </div>
   )
 }
+
+export const RepoTileSkeleton = () => {
+  return (
+    <div className="border-border bg-muted-background h-36 w-full animate-pulse border"></div>
+  )
+}

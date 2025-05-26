@@ -4,7 +4,7 @@ import { useEffect } from 'react'
 
 import { trendQueryOptions } from '~/utils/repos'
 
-import { RepoTile } from './RepoTile'
+import { RepoTile, RepoTileSkeleton } from './RepoTile'
 
 const route = getRouteApi('/')
 
@@ -22,7 +22,15 @@ export const RepoView = () => {
   }, [data, isPlaceholderData, time, page, queryClient])
 
   if (isPending) {
-    return <div>Loading...</div>
+    return (
+      <div className="flex flex-col gap-4">
+        {Array(10)
+          .fill(0)
+          .map((_, i) => (
+            <RepoTileSkeleton key={`loading-${i}`} />
+          ))}
+      </div>
+    )
   }
 
   if (isError) {
