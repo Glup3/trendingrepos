@@ -32,4 +32,9 @@
   .using-mouse * {
     outline: none !important;
   }
+
+  :root {
+    --background: #0a0a0a;
+    --foreground: #fafafa;
+  }
 }

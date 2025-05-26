@@ -12,7 +12,7 @@ export const IndexPageContent = () => {
     <main className="mx-auto flex max-w-screen-xl flex-1 flex-col p-4">
       <div className="flex flex-wrap justify-between gap-3">
         <div className="flex min-w-72 flex-col gap-3">
-          <p className="tracking-light text-[32px] font-bold leading-tight text-white">
+          <p className="tracking-light text-[32px] font-bold leading-tight">
             Trending Repositories
           </p>
           <p className="text-sm font-normal leading-normal text-[#a2abb3]">
