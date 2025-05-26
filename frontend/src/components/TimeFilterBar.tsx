@@ -25,7 +25,7 @@ const options = linkOptions([
 export const TimeFilterBar = () => {
   return (
     <div className="pb-3">
-      <div className="flex gap-8 border-b border-[#40484f] px-4">
+      <div className="flex gap-8 border-b border-[#40484f]">
         {options.map((option) => (
           <Link
             {...option}
