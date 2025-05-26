@@ -1,3 +1,5 @@
+import { languages } from '~/utils/languages'
+
 type Repo = {
   githubId: string
   name: string
@@ -36,9 +38,22 @@ export const RepoTile = ({ repo }: { repo: Repo }) => {
         </div>
       </div>
 
-      <div className="mt-8 text-sm">
-        {repo.language || 'Unknown'} | ⭐ {repo.stars.toLocaleString('en-US')} |
-        📈 {repo.starsGained.toLocaleString('en-US')}
+      <div className="mt-8 flex items-center gap-6 text-sm">
+        <span className="inline-flex items-center gap-1">
+          <div
+            className="h-3 w-3 rounded-full"
+            style={{
+              backgroundColor:
+                (repo.language && languages[repo.language]) || '#64748B',
+            }}
+          />
+
+          {repo.language || 'Unknown'}
+        </span>
+
+        <span>⭐ {repo.stars.toLocaleString('en-US')}</span>
+
+        <span>📈 {repo.starsGained.toLocaleString('en-US')}</span>
       </div>
     </div>
   )
