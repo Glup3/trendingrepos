@@ -8,6 +8,7 @@ export default {
       'muted-background': 'var(--muted-background)',
       'muted-foreground': 'var(--muted-foreground)',
       border: 'var(--border)',
+      white: 'var(--white)',
     },
   },
 }
