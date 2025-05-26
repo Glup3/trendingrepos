@@ -19,7 +19,7 @@ export const RepoTile = ({ repo }: { repo: Repo }) => {
           <a
             href={`https://github.com/${repo.name}`}
             target="_blank"
-            className="hover:text-muted-foreground mb-1"
+            className="hover:text-muted-foreground mb-1 font-medium"
           >
             {repo.name}
           </a>
@@ -39,7 +39,7 @@ export const RepoTile = ({ repo }: { repo: Repo }) => {
       </div>
 
       <div className="mt-8 flex items-center gap-6 text-sm">
-        <span className="inline-flex items-center gap-1">
+        <span className="inline-flex items-center gap-2">
           <div
             className="h-3 w-3 rounded-full"
             style={{
@@ -53,7 +53,9 @@ export const RepoTile = ({ repo }: { repo: Repo }) => {
 
         <span>⭐ {repo.stars.toLocaleString('en-US')}</span>
 
-        <span>📈 {repo.starsGained.toLocaleString('en-US')}</span>
+        <span className="font-semibold">
+          +{repo.starsGained.toLocaleString('en-US')} 📈
+        </span>
       </div>
     </div>
   )
