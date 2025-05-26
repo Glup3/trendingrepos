@@ -11,14 +11,18 @@ export const RepoTile = ({ repo }: { repo: Repo }) => {
   const username = repo.name.split('/')[0]
 
   return (
-    <div className="rounded-md border bg-zinc-900 p-2">
-      <div className="flex">
+    <div className="bg-muted-background border-border border p-2">
+      <div className="flex gap-x-8">
         <div className="flex flex-1 flex-col">
-          <a href={`https://github.com/${repo.name}`} target="_blank">
+          <a
+            href={`https://github.com/${repo.name}`}
+            target="_blank"
+            className="mb-1"
+          >
             {repo.name}
           </a>
 
-          <p className="line-clamp-3 text-sm text-zinc-400">
+          <p className="text-muted-foreground line-clamp-3 text-xs">
             {repo.description || 'No description'}
           </p>
         </div>
@@ -32,9 +36,8 @@ export const RepoTile = ({ repo }: { repo: Repo }) => {
         </div>
       </div>
 
-      <div className="mt-4 text-sm">
-        💻 {repo.language || 'Unknown'} | ⭐ {repo.stars} | 📈{' '}
-        {repo.starsGained}
+      <div className="mt-8 text-sm">
+        {repo.language || 'Unknown'} | ⭐ {repo.stars} | 📈 {repo.starsGained}
       </div>
     </div>
   )

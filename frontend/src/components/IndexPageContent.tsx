@@ -10,12 +10,12 @@ export const IndexPageContent = () => {
 
   return (
     <main className="mx-auto flex max-w-screen-xl flex-1 flex-col p-4">
-      <div className="flex flex-wrap justify-between gap-3">
+      <div className="mb-4 flex flex-wrap justify-between gap-3">
         <div className="flex min-w-72 flex-col gap-3">
           <p className="tracking-light text-[32px] font-bold leading-tight">
             Trending Repositories
           </p>
-          <p className="text-sm font-normal leading-normal text-[#a2abb3]">
+          <p className="text-sm font-normal leading-normal">
             Explore the most popular repositories on GitHub, ranked by star
             difference over selectable time periods.
           </p>
@@ -26,7 +26,7 @@ export const IndexPageContent = () => {
 
       <RepoView />
 
-      <div className="flex gap-2">
+      <div className="mt-4 flex justify-center gap-4">
         <Link
           from="/"
           search={(prev) => ({
