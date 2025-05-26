@@ -1,20 +1,26 @@
+import { Link } from '@tanstack/react-router'
+
 export const Navbar = () => {
   return (
     <header className="flex flex-wrap items-center justify-between gap-4 border-b border-solid border-b-[#2c3135] px-4 py-4">
-      <a href="/" className="flex items-center gap-2">
+      <Link
+        to="/"
+        className="hover:text-muted-foreground flex items-center gap-2"
+      >
         <img src="/favicon.png" width={24} height={24} />
         <h2 className="text-lg font-bold leading-tight tracking-[-0.015em]">
           trendingrepos
         </h2>
-      </a>
+      </Link>
 
       <div className="flex items-center gap-8">
-        <a href="/" className="hover:text-muted-foreground">
+        <Link to="/" className="hover:text-muted-foreground">
           Home
-        </a>
-        <a href="/about" className="hover:text-muted-foreground">
+        </Link>
+
+        <Link to="/about" className="hover:text-muted-foreground">
           About
-        </a>
+        </Link>
 
         <a
           href="https://github.com/glup3/trendingrepos"
