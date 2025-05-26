@@ -1,4 +1,5 @@
 import { Link, linkOptions } from '@tanstack/react-router'
+import { twMerge } from 'tailwind-merge'
 
 const options = linkOptions([
   {
@@ -21,8 +22,7 @@ const options = linkOptions([
   },
 ])
 
-// TODO: fix active link styles when changing page / language
-export const TimeFilterBar = () => {
+export const TimeFilterBar = (props: { time: string }) => {
   return (
     <div className="pb-3">
       <div className="flex gap-8 border-b border-[#40484f]">
@@ -30,10 +30,10 @@ export const TimeFilterBar = () => {
           <Link
             {...option}
             key={option.label}
-            className="flex flex-col items-center justify-center border-b-[3px] border-b-transparent pb-[13px] pt-4 text-[#a2abb3]"
-            activeProps={{
-              className: `text-white border-b-white`,
-            }}
+            className={twMerge(
+              'flex flex-col items-center justify-center border-b-[3px] border-b-transparent pb-[13px] pt-4 text-[#a2abb3] hover:text-white',
+              props.time === option.search.time && 'border-b-white text-white',
+            )}
           >
             <p className="text-sm font-bold leading-normal tracking-[0.015em]">
               {option.label}

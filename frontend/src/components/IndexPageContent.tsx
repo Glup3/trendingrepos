@@ -22,7 +22,7 @@ export const IndexPageContent = () => {
         </div>
       </div>
 
-      <TimeFilterBar />
+      <TimeFilterBar time={search.time} />
 
       <RepoView />
 
