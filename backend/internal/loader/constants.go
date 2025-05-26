@@ -9,7 +9,7 @@ const (
 	MaxConcurrentRequests = 20
 
 	SleepTimeout      = time.Second * time.Duration(90)
-	ErrorSleepTimeout = time.Second * time.Duration(240)
+	ErrorSleepTimeout = time.Second * time.Duration(300)
 )
 
 // These are 10 next page cursors for a 100 pageSize
