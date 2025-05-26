@@ -11,13 +11,13 @@ export const RepoTile = ({ repo }: { repo: Repo }) => {
   const username = repo.name.split('/')[0]
 
   return (
-    <div className="bg-muted-background border-border border p-2">
+    <div className="bg-muted-background border-border border p-2 transition-transform duration-200 ease-in-out hover:scale-[1.02] hover:shadow-xl">
       <div className="flex gap-x-8">
         <div className="flex flex-1 flex-col">
           <a
             href={`https://github.com/${repo.name}`}
             target="_blank"
-            className="mb-1"
+            className="hover:text-muted-foreground mb-1"
           >
             {repo.name}
           </a>
