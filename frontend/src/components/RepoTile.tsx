@@ -37,7 +37,8 @@ export const RepoTile = ({ repo }: { repo: Repo }) => {
       </div>
 
       <div className="mt-8 text-sm">
-        {repo.language || 'Unknown'} | ⭐ {repo.stars} | 📈 {repo.starsGained}
+        {repo.language || 'Unknown'} | ⭐ {repo.stars.toLocaleString('en-US')} |
+        📈 {repo.starsGained.toLocaleString('en-US')}
       </div>
     </div>
   )
