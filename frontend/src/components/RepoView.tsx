@@ -11,7 +11,7 @@ const route = getRouteApi('/')
 export const RepoView = () => {
   const queryClient = useQueryClient()
   const { page, time } = route.useSearch()
-  const { data, isPending, isError, isPlaceholderData } = useQuery(
+  const { data, isPending, isError, isPlaceholderData, refetch } = useQuery(
     trendQueryOptions(time, page),
   )
 
@@ -34,7 +34,37 @@ export const RepoView = () => {
   }
 
   if (isError) {
-    return <div>Error...</div>
+    return (
+      <div className="mb-12 mt-8 flex flex-col items-center justify-center gap-2">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="mb-2 h-12 w-12 text-foreground"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={2}
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M12 9v2m0 4h.01M12 2a10 10 0 1010 10A10 10 0 0012 2z"
+          />
+        </svg>
+        <h2 className="text-xl font-semibold">Error Loading Data</h2>
+
+        <div className="max-w-lg text-center text-sm">
+          We encountered an issue while trying to load the data. Please check
+          your internet connection or try again later.
+        </div>
+
+        <button
+          className="mt-4 border px-6 py-2 font-semibold hover:bg-muted-background"
+          onClick={() => refetch()}
+        >
+          Retry
+        </button>
+      </div>
+    )
   }
 
   return (
