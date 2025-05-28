@@ -5,7 +5,7 @@ export const Navbar = () => {
     <header className="flex flex-wrap items-center justify-between gap-4 border-b border-solid border-b-[#2c3135] px-4 py-4">
       <Link
         to="/"
-        className="hover:text-muted-foreground flex items-center gap-2"
+        className="hover:text-muted-foreground flex items-center gap-2 hover:underline"
       >
         <img src="/favicon.png" width={24} height={24} />
         <h2 className="text-lg font-bold leading-tight tracking-[-0.015em]">
@@ -14,11 +14,14 @@ export const Navbar = () => {
       </Link>
 
       <div className="flex items-center gap-8">
-        <Link to="/" className="hover:text-muted-foreground">
+        <Link to="/" className="hover:text-muted-foreground hover:underline">
           Home
         </Link>
 
-        <Link to="/about" className="hover:text-muted-foreground">
+        <Link
+          to="/about"
+          className="hover:text-muted-foreground hover:underline"
+        >
           About
         </Link>
 

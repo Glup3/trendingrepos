@@ -19,7 +19,8 @@ export const RepoTile = ({ repo }: { repo: Repo }) => {
           <a
             href={`https://github.com/${repo.name}`}
             target="_blank"
-            className="hover:text-muted-foreground mb-1 font-medium"
+            rel="noopener noreferrer"
+            className="hover:text-muted-foreground mb-1 font-medium hover:underline"
           >
             {repo.name}
           </a>
@@ -30,11 +31,17 @@ export const RepoTile = ({ repo }: { repo: Repo }) => {
         </div>
 
         <div>
-          <img
-            src={`https://github.com/${username}.png`}
-            height={32}
-            width={32}
-          />
+          <a
+            href={`https://github.com/${repo.name}`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <img
+              src={`https://github.com/${username}.png`}
+              height={32}
+              width={32}
+            />
+          </a>
         </div>
       </div>
 
