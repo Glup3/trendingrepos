@@ -24,6 +24,20 @@ export const IndexPageContent = () => {
 
       <TimeFilterBar time={search.time} />
 
+      {search.time === 'monthly' && (
+        <div
+          className="bg-muted-background mb-4 border p-4 text-sm text-[#6b85ff]"
+          role="alert"
+        >
+          <span className="font-medium">!!!</span>
+          <span>
+            {' '}
+            Monthly data is incomplete, since the crawler has only been running
+            since mid of May 2025.
+          </span>
+        </div>
+      )}
+
       <RepoView />
 
       <div className="mt-4 flex justify-center gap-4">
