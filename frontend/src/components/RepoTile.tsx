@@ -13,7 +13,7 @@ export const RepoTile = ({ repo }: { repo: Repo }) => {
   const username = repo.name.split('/')[0]
 
   return (
-    <div className="bg-muted-background border-border border p-4 transition-transform duration-200 ease-in-out hover:scale-[1.02] hover:shadow-xl">
+    <div className="bg-muted-background border-border border p-4 transition-transform duration-200 ease-in-out hover:scale-[1.01]">
       <div className="flex gap-x-8">
         <div className="flex flex-1 flex-col">
           <a
