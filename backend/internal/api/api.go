@@ -68,6 +68,7 @@ func (v *searchReposSearchSearchResultItemConnectionEdgesSearchResultItemEdge) G
 }
 
 func (v *searchReposSearchSearchResultItemConnectionEdgesSearchResultItemEdge) UnmarshalJSON(b []byte) error {
+
 	if string(b) == "null" {
 		return nil
 	}
@@ -221,6 +222,8 @@ type searchReposSearchSearchResultItemConnectionEdgesSearchResultItemEdgeNodeRep
 	Description string `json:"description"`
 	// The repository's name with owner.
 	NameWithOwner string `json:"nameWithOwner"`
+	// Indicates if the repository is unmaintained.
+	IsArchived bool `json:"isArchived"`
 	// The primary language of the repository's code.
 	PrimaryLanguage searchReposSearchSearchResultItemConnectionEdgesSearchResultItemEdgeNodeRepositoryPrimaryLanguage `json:"primaryLanguage"`
 }
@@ -248,6 +251,11 @@ func (v *searchReposSearchSearchResultItemConnectionEdgesSearchResultItemEdgeNod
 // GetNameWithOwner returns searchReposSearchSearchResultItemConnectionEdgesSearchResultItemEdgeNodeRepository.NameWithOwner, and is useful for accessing the field via an interface.
 func (v *searchReposSearchSearchResultItemConnectionEdgesSearchResultItemEdgeNodeRepository) GetNameWithOwner() string {
 	return v.NameWithOwner
+}
+
+// GetIsArchived returns searchReposSearchSearchResultItemConnectionEdgesSearchResultItemEdgeNodeRepository.IsArchived, and is useful for accessing the field via an interface.
+func (v *searchReposSearchSearchResultItemConnectionEdgesSearchResultItemEdgeNodeRepository) GetIsArchived() bool {
+	return v.IsArchived
 }
 
 // GetPrimaryLanguage returns searchReposSearchSearchResultItemConnectionEdgesSearchResultItemEdgeNodeRepository.PrimaryLanguage, and is useful for accessing the field via an interface.
@@ -291,25 +299,18 @@ type searchReposSearchSearchResultItemConnectionEdgesSearchResultItemEdgeNodeSea
 
 func (v *searchReposSearchSearchResultItemConnectionEdgesSearchResultItemEdgeNodeApp) implementsGraphQLInterfacesearchReposSearchSearchResultItemConnectionEdgesSearchResultItemEdgeNodeSearchResultItem() {
 }
-
 func (v *searchReposSearchSearchResultItemConnectionEdgesSearchResultItemEdgeNodeDiscussion) implementsGraphQLInterfacesearchReposSearchSearchResultItemConnectionEdgesSearchResultItemEdgeNodeSearchResultItem() {
 }
-
 func (v *searchReposSearchSearchResultItemConnectionEdgesSearchResultItemEdgeNodeIssue) implementsGraphQLInterfacesearchReposSearchSearchResultItemConnectionEdgesSearchResultItemEdgeNodeSearchResultItem() {
 }
-
 func (v *searchReposSearchSearchResultItemConnectionEdgesSearchResultItemEdgeNodeMarketplaceListing) implementsGraphQLInterfacesearchReposSearchSearchResultItemConnectionEdgesSearchResultItemEdgeNodeSearchResultItem() {
 }
-
 func (v *searchReposSearchSearchResultItemConnectionEdgesSearchResultItemEdgeNodeOrganization) implementsGraphQLInterfacesearchReposSearchSearchResultItemConnectionEdgesSearchResultItemEdgeNodeSearchResultItem() {
 }
-
 func (v *searchReposSearchSearchResultItemConnectionEdgesSearchResultItemEdgeNodePullRequest) implementsGraphQLInterfacesearchReposSearchSearchResultItemConnectionEdgesSearchResultItemEdgeNodeSearchResultItem() {
 }
-
 func (v *searchReposSearchSearchResultItemConnectionEdgesSearchResultItemEdgeNodeRepository) implementsGraphQLInterfacesearchReposSearchSearchResultItemConnectionEdgesSearchResultItemEdgeNodeSearchResultItem() {
 }
-
 func (v *searchReposSearchSearchResultItemConnectionEdgesSearchResultItemEdgeNodeUser) implementsGraphQLInterfacesearchReposSearchSearchResultItemConnectionEdgesSearchResultItemEdgeNodeSearchResultItem() {
 }
 
@@ -361,6 +362,7 @@ func __unmarshalsearchReposSearchSearchResultItemConnectionEdgesSearchResultItem
 }
 
 func __marshalsearchReposSearchSearchResultItemConnectionEdgesSearchResultItemEdgeNodeSearchResultItem(v *searchReposSearchSearchResultItemConnectionEdgesSearchResultItemEdgeNodeSearchResultItem) ([]byte, error) {
+
 	var typename string
 	switch v := (*v).(type) {
 	case *searchReposSearchSearchResultItemConnectionEdgesSearchResultItemEdgeNodeApp:
@@ -460,6 +462,7 @@ query searchRepos ($query: String!, $limit: Int!, $cursor: String!) {
 					stargazerCount
 					description
 					nameWithOwner
+					isArchived
 					primaryLanguage {
 						name
 					}

@@ -41,6 +41,7 @@ func (s *RepoService) Insert(ctx context.Context, repos []api.Repo) error {
 			Description:     pgtype.Text{String: repo.Description, Valid: true},
 			Stars:           int32(repo.Stars),
 			PrimaryLanguage: pgtype.Text{String: repo.PrimaryLanguage, Valid: true},
+			IsArchived:      repo.IsArchived,
 		}
 	}
 	_, err = qtx.InsertTempRepositories(ctx, params)

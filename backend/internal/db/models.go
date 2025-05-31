@@ -14,6 +14,7 @@ type Repository struct {
 	Description     pgtype.Text
 	Stars           int32
 	PrimaryLanguage pgtype.Text
+	IsArchived      bool
 }
 
 type Star struct {
@@ -22,10 +23,48 @@ type Star struct {
 	Time     pgtype.Timestamptz
 }
 
+type StarsDaily struct {
+	Bucket        interface{}
+	GithubID      string
+	StarsEarliest interface{}
+	StarsLatest   interface{}
+}
+
+type StarsTrendDaily struct {
+	GithubID        pgtype.Text
+	NameWithOwner   pgtype.Text
+	PrimaryLanguage pgtype.Text
+	Description     pgtype.Text
+	StarsToday      interface{}
+	StarsPrev       interface{}
+	StarsDiff       int32
+}
+
+type StarsTrendMonthly struct {
+	GithubID        pgtype.Text
+	NameWithOwner   pgtype.Text
+	PrimaryLanguage pgtype.Text
+	Description     pgtype.Text
+	StarsToday      interface{}
+	StarsPrev       interface{}
+	StarsDiff       int32
+}
+
+type StarsTrendWeekly struct {
+	GithubID        pgtype.Text
+	NameWithOwner   pgtype.Text
+	PrimaryLanguage pgtype.Text
+	Description     pgtype.Text
+	StarsToday      interface{}
+	StarsPrev       interface{}
+	StarsDiff       int32
+}
+
 type TempRepository struct {
 	GithubID        string
 	NameWithOwner   string
 	Description     pgtype.Text
 	Stars           int32
 	PrimaryLanguage pgtype.Text
+	IsArchived      bool
 }

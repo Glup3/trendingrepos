@@ -13,6 +13,7 @@ type Repo struct {
 	Description     string
 	NameWithOwner   string
 	PrimaryLanguage string
+	IsArchived      bool
 }
 
 type QueryArgs struct {
@@ -36,6 +37,7 @@ func (c *APIClient) SearchRepos(ctx context.Context, queryArgs QueryArgs) ([]Rep
 			Description:     repo.Description,
 			NameWithOwner:   repo.NameWithOwner,
 			PrimaryLanguage: repo.PrimaryLanguage.Name,
+			IsArchived:      repo.IsArchived,
 		})
 	}
 	return repos, nil
@@ -56,6 +58,7 @@ func (r Repo) CSVRecord() []string {
 		strconv.Itoa(r.Stars),
 		r.PrimaryLanguage,
 		r.Description,
+		strconv.FormatBool(r.IsArchived),
 	}
 }
 
@@ -66,5 +69,6 @@ func (r Repo) CSVHeader() []string {
 		"Stars",
 		"PrimaryLanguage",
 		"Description",
+		"Archived",
 	}
 }

@@ -34,6 +34,7 @@ func (r iteratorForInsertTempRepositories) Values() ([]interface{}, error) {
 		r.rows[0].Description,
 		r.rows[0].Stars,
 		r.rows[0].PrimaryLanguage,
+		r.rows[0].IsArchived,
 	}, nil
 }
 
@@ -42,5 +43,5 @@ func (r iteratorForInsertTempRepositories) Err() error {
 }
 
 func (q *Queries) InsertTempRepositories(ctx context.Context, arg []InsertTempRepositoriesParams) (int64, error) {
-	return q.db.CopyFrom(ctx, []string{"temp_repositories"}, []string{"github_id", "name_with_owner", "description", "stars", "primary_language"}, &iteratorForInsertTempRepositories{rows: arg})
+	return q.db.CopyFrom(ctx, []string{"temp_repositories"}, []string{"github_id", "name_with_owner", "description", "stars", "primary_language", "is_archived"}, &iteratorForInsertTempRepositories{rows: arg})
 }

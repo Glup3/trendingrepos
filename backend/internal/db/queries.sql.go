@@ -22,9 +22,13 @@ func (q *Queries) CreateTempRepositories(ctx context.Context) error {
 
 const insertRepositories = `-- name: InsertRepositories :exec
 INSERT INTO repositories
-SELECT github_id, name_with_owner, description, stars, primary_language FROM temp_repositories
+SELECT github_id, name_with_owner, description, stars, primary_language, is_archived FROM temp_repositories
 ON CONFLICT (github_id) DO UPDATE
-SET stars = EXCLUDED.stars
+SET
+  stars = EXCLUDED.stars,
+  description = EXCLUDED.description,
+  primary_language = EXCLUDED.primary_language,
+  is_archived = EXCLUDED.is_archived
 `
 
 func (q *Queries) InsertRepositories(ctx context.Context) error {
@@ -48,4 +52,5 @@ type InsertTempRepositoriesParams struct {
 	Description     pgtype.Text
 	Stars           int32
 	PrimaryLanguage pgtype.Text
+	IsArchived      bool
 }
