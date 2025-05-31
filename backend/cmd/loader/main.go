@@ -54,11 +54,13 @@ func run(ctx context.Context, logger *slog.Logger) error {
 		err := repoService.Insert(ctx, repos)
 		if err != nil {
 			logger.Error("persisting data failed", slog.Any("error", err))
+			return
 		}
 		logger.Info("finished persisting data - refreshing views")
 		err = repoService.RefreshViews(ctx)
 		if err != nil {
 			logger.Error("failed refreshing views", slog.Any("error", err))
+			return
 		}
 		logger.Info("finished refreshing views")
 	})
