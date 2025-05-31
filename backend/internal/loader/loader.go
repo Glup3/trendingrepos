@@ -82,6 +82,7 @@ func (l *Loader) LoadMultipleRepos(ctx context.Context, maxStarss []int) []api.R
 	var allRepos []api.Repo
 	var mu sync.Mutex
 	seen := make(map[string]struct{})
+	retryCount := 0
 
 	i := 0
 	for i < len(maxStarss) {
@@ -112,6 +113,12 @@ func (l *Loader) LoadMultipleRepos(ctx context.Context, maxStarss []int) []api.R
 
 		if err := g.Wait(); err != nil {
 			l.logger.Warn("failed fetching - will sleep", slog.Any("error", err))
+			if retryCount >= MaxRetries {
+				l.logger.Error("exceeded max retries - will stop fetching", slog.Any("error", err))
+				break
+			}
+
+			retryCount++
 			time.Sleep(ErrorSleepTimeout)
 			continue
 		}
