@@ -4,7 +4,39 @@ import { z } from 'zod'
 export const maxPage = 10_000
 export const defaultPage = 1
 export const timePeriods = ['daily', 'weekly', 'monthly'] as const
-export const languages = ['JavaScript', 'Python', 'Go'] as const
+export const languages = [
+  'C#',
+  'C',
+  'C++',
+  'CSS',
+  'Dart',
+  'Elixir',
+  'Gleam',
+  'Go',
+  'HTML',
+  'Haskell',
+  'Java',
+  'JavaScript',
+  'Jupyter Notebook',
+  'Kotlin',
+  'Lua',
+  'Markdown',
+  'Objective-C',
+  'PHP',
+  'Perl',
+  'PowerShell',
+  'Python',
+  'R',
+  'Ruby',
+  'Rust',
+  'Scala',
+  'Shell',
+  'Swift',
+  'TypeScript',
+  'Vue',
+  'Zig',
+  'Unknown',
+] as const
 
 export const indexSearchSchema = z.object({
   page: fallback(z.number().min(defaultPage).max(maxPage), defaultPage).default(

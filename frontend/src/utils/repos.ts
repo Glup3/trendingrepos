@@ -58,7 +58,8 @@ const getStarsTrend = createServerFn()
       .selectAll()
 
     if (data.language !== null) {
-      query = query.where('primary_language', '=', data.language)
+      const lang = data.language !== 'Unknown' ? data.language : ''
+      query = query.where('primary_language', '=', lang)
     }
 
     return await query.execute()
