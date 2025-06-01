@@ -3,7 +3,7 @@ import { getRouteApi } from '@tanstack/react-router'
 import { useEffect } from 'react'
 import { twMerge } from 'tailwind-merge'
 
-import { trendQueryOptions } from '~/utils/repos'
+import { trendQueryOptions } from '~/utils/api'
 
 import { RepoTile, RepoTileSkeleton } from './RepoTile'
 

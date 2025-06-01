@@ -64,3 +64,19 @@ const getStarsTrend = createServerFn()
 
     return await query.execute()
   })
+
+export const lastUpdateQueryOptions = () =>
+  queryOptions({
+    queryKey: ['last_update'],
+    queryFn: () => getLastUpdate(),
+    refetchOnWindowFocus: false,
+  })
+
+const getLastUpdate = createServerFn().handler(async () => {
+  return await db
+    .selectFrom('stars')
+    .orderBy('time', 'desc')
+    .limit(1)
+    .select('time')
+    .executeTakeFirst()
+})
