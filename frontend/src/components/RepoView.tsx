@@ -42,7 +42,7 @@ export const RepoView = () => {
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
-          strokeWidth={2}
+          strokeWidth="2"
         >
           <path
             strokeLinecap="round"
@@ -63,6 +63,28 @@ export const RepoView = () => {
         >
           Retry
         </button>
+      </div>
+    )
+  }
+
+  if (data.length === 0) {
+    return (
+      <div className="text-foreground flex flex-col items-center justify-center py-12">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="size-12"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
+          />
+        </svg>
+        <p className="mt-4 text-lg font-medium">No data available.</p>
       </div>
     )
   }
