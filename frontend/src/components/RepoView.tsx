@@ -1,6 +1,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { getRouteApi } from '@tanstack/react-router'
 import { useEffect } from 'react'
+import { twMerge } from 'tailwind-merge'
 
 import { trendQueryOptions } from '~/utils/repos'
 
@@ -10,16 +11,15 @@ const route = getRouteApi('/')
 
 export const RepoView = () => {
   const queryClient = useQueryClient()
-  const { page, time } = route.useSearch()
-  const { data, isPending, isError, isPlaceholderData, refetch } = useQuery(
-    trendQueryOptions(time, page),
-  )
+  const { page, time, language } = route.useSearch()
+  const { data, isPending, isError, isPlaceholderData, isFetching, refetch } =
+    useQuery(trendQueryOptions(time, page, language))
 
   useEffect(() => {
     if (!isPlaceholderData) {
-      queryClient.prefetchQuery(trendQueryOptions(time, page + 1))
+      queryClient.prefetchQuery(trendQueryOptions(time, page + 1, language))
     }
-  }, [data, isPlaceholderData, time, page, queryClient])
+  }, [data, isPlaceholderData, time, page, language, queryClient])
 
   if (isPending) {
     return (
@@ -38,7 +38,7 @@ export const RepoView = () => {
       <div className="mb-12 mt-8 flex flex-col items-center justify-center gap-2">
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          className="mb-2 h-12 w-12 text-foreground"
+          className="text-foreground mb-2 h-12 w-12"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -58,7 +58,7 @@ export const RepoView = () => {
         </div>
 
         <button
-          className="mt-4 border px-6 py-2 font-semibold hover:bg-muted-background"
+          className="hover:bg-muted-background mt-4 border px-6 py-2 font-semibold"
           onClick={() => refetch()}
         >
           Retry
@@ -68,7 +68,12 @@ export const RepoView = () => {
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div
+      className={twMerge(
+        'flex flex-col gap-4',
+        isFetching ? 'opacity-70' : null,
+      )}
+    >
       {data.map((repo) => (
         <RepoTile
           key={repo.github_id}

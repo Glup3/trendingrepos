@@ -8,6 +8,6 @@ export const Route = createFileRoute('/')({
   component: IndexPageContent,
   validateSearch: zodValidator(indexSearchSchema),
   search: {
-    middlewares: [stripSearchParams({ page: defaultPage })],
+    middlewares: [stripSearchParams({ page: defaultPage, language: null })],
   },
 })

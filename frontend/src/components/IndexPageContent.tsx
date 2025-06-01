@@ -1,5 +1,6 @@
 import { Link, getRouteApi } from '@tanstack/react-router'
 
+import { OtherFilters } from './OtherFilters'
 import { RepoView } from './RepoView'
 import { TimeFilterBar } from './TimeFilterBar'
 
@@ -23,6 +24,7 @@ export const IndexPageContent = () => {
       </div>
 
       <TimeFilterBar time={search.time} />
+      <OtherFilters language={search.language} />
 
       {search.time === 'monthly' && (
         <div

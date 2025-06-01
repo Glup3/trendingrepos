@@ -4,7 +4,7 @@ import { z } from 'vinxi'
 
 import { db } from '~/db/database'
 
-import { maxPage, timePeriods } from './searchSchemas'
+import { languages, maxPage, timePeriods } from './searchSchemas'
 
 const timePeriodMap: Record<
   (typeof timePeriods)[number],
@@ -18,12 +18,17 @@ const timePeriodMap: Record<
 export const trendQueryOptions = (
   timePeriod: (typeof timePeriods)[number],
   page: number,
+  language: (typeof languages)[number] | null,
 ) =>
   queryOptions({
-    queryKey: ['stars_trend', timePeriod, page],
+    queryKey: ['stars_trend', timePeriod, page, language],
     queryFn: () =>
       getStarsTrend({
-        data: { page: page - 1, timePeriod: timePeriodMap[timePeriod] },
+        data: {
+          page: page - 1,
+          timePeriod: timePeriodMap[timePeriod],
+          language: language,
+        },
       }),
     placeholderData: keepPreviousData,
     refetchOnWindowFocus: false,
@@ -38,17 +43,23 @@ const paramsSchema = z.object({
     'stars_trend_weekly',
     'stars_trend_monthly',
   ]),
+  language: z.enum(languages).nullable(),
 })
 
 const getStarsTrend = createServerFn()
   .validator(paramsSchema)
   .handler(async ({ data }) => {
-    return await db
+    let query = db
       .selectFrom(`${data.timePeriod} as view`)
       .where('stars_diff', '>=', 5)
       .orderBy('stars_diff', 'desc')
       .limit(pageSize)
       .offset(data.page * pageSize)
       .selectAll()
-      .execute()
+
+    if (data.language !== null) {
+      query = query.where('primary_language', '=', data.language)
+    }
+
+    return await query.execute()
   })
