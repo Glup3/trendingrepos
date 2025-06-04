@@ -3,18 +3,10 @@ package api
 import (
 	"context"
 	"fmt"
-	"strconv"
 	"strings"
 )
 
-type Repo struct {
-	Id              string
-	Stars           int
-	Description     string
-	NameWithOwner   string
-	PrimaryLanguage string
-	IsArchived      bool
-}
+type GitHubRepo = searchReposSearchSearchResultItemConnectionEdgesSearchResultItemEdgeNodeRepository
 
 type QueryArgs struct {
 	PageSize int
@@ -23,22 +15,14 @@ type QueryArgs struct {
 	Cursor   string
 }
 
-func (c *APIClient) SearchRepos(ctx context.Context, queryArgs QueryArgs) ([]Repo, error) {
+func (c *APIClient) SearchRepos(ctx context.Context, queryArgs QueryArgs) ([]GitHubRepo, error) {
 	resp, err := searchRepos(ctx, c.gClient, buildQuery(queryArgs), queryArgs.PageSize, queryArgs.Cursor)
 	if err != nil {
 		return nil, err
 	}
-	repos := make([]Repo, 0, len(resp.Search.Edges))
+	repos := make([]GitHubRepo, 0, len(resp.Search.Edges))
 	for _, edge := range resp.Search.Edges {
-		repo := edge.Node.(*searchReposSearchSearchResultItemConnectionEdgesSearchResultItemEdgeNodeRepository)
-		repos = append(repos, Repo{
-			Id:              repo.Id,
-			Stars:           repo.StargazerCount,
-			Description:     repo.Description,
-			NameWithOwner:   repo.NameWithOwner,
-			PrimaryLanguage: repo.PrimaryLanguage.Name,
-			IsArchived:      repo.IsArchived,
-		})
+		repos = append(repos, *edge.Node.(*GitHubRepo))
 	}
 	return repos, nil
 }
@@ -49,26 +33,4 @@ func buildQuery(args QueryArgs) string {
 	b.WriteString("fork:true ")
 	fmt.Fprintf(&b, "stars:%d..%d ", args.MinStars, args.MaxStars)
 	return b.String()
-}
-
-func (r Repo) CSVRecord() []string {
-	return []string{
-		r.Id,
-		r.NameWithOwner,
-		strconv.Itoa(r.Stars),
-		r.PrimaryLanguage,
-		r.Description,
-		strconv.FormatBool(r.IsArchived),
-	}
-}
-
-func (r Repo) CSVHeader() []string {
-	return []string{
-		"Id",
-		"NameWithOwner",
-		"Stars",
-		"PrimaryLanguage",
-		"Description",
-		"Archived",
-	}
 }

@@ -28,7 +28,7 @@ func (l *Loader) CollectStarsUpperBounds(ctx context.Context, languages, ignored
 	starCounts := []int{currStars}
 	fmt.Printf("%d,\n", currStars)
 	for currStars > MinStarsCount {
-		repos, err := l.apiClient.SearchRepos(ctx, api.QueryArgs{
+		ghRepos, err := l.apiClient.SearchRepos(ctx, api.QueryArgs{
 			PageSize: PageSize,
 			Cursor:   Cursors[9],
 			MinStars: MinStarsCount,
@@ -37,9 +37,15 @@ func (l *Loader) CollectStarsUpperBounds(ctx context.Context, languages, ignored
 		if err != nil {
 			return nil, err
 		}
-		if len(repos) == 0 {
+		if len(ghRepos) == 0 {
 			break
 		}
+
+		repos := make([]Repo, 0, len(ghRepos))
+		for _, ghRepo := range ghRepos {
+			repos = append(repos, repoFromGitHubRepo(ghRepo))
+		}
+
 		currStars = repos[len(repos)-1].Stars
 		fmt.Printf("%d,\n", currStars)
 		starCounts = append(starCounts, currStars)
@@ -48,14 +54,14 @@ func (l *Loader) CollectStarsUpperBounds(ctx context.Context, languages, ignored
 	return starCounts, nil
 }
 
-func (l *Loader) LoadRepos(ctx context.Context, maxStars int) ([]api.Repo, error) {
-	g := new(errgroup.Group)
+func (l *Loader) LoadRepos(ctx context.Context, maxStars int) ([]Repo, error) {
 	var mu sync.Mutex
-	var res []api.Repo
+	g := new(errgroup.Group)
+	repos := make([]Repo, 0, len(Cursors)*PageSize)
 
 	for _, cursor := range Cursors {
 		g.Go(func() error {
-			repos, err := l.apiClient.SearchRepos(ctx, api.QueryArgs{
+			ghRepos, err := l.apiClient.SearchRepos(ctx, api.QueryArgs{
 				PageSize: PageSize,
 				Cursor:   cursor,
 				MinStars: MinStarsCount,
@@ -66,7 +72,9 @@ func (l *Loader) LoadRepos(ctx context.Context, maxStars int) ([]api.Repo, error
 			}
 
 			mu.Lock()
-			res = append(res, repos...)
+			for _, ghRepo := range ghRepos {
+				repos = append(repos, repoFromGitHubRepo(ghRepo))
+			}
 			mu.Unlock()
 			return nil
 		})
@@ -74,12 +82,12 @@ func (l *Loader) LoadRepos(ctx context.Context, maxStars int) ([]api.Repo, error
 	if err := g.Wait(); err != nil {
 		return nil, err
 	}
-	return res, nil
+	return repos, nil
 }
 
-func (l *Loader) LoadMultipleRepos(ctx context.Context, maxStarss []int) []api.Repo {
+func (l *Loader) LoadMultipleRepos(ctx context.Context, maxStarss []int) []Repo {
 	g := new(errgroup.Group)
-	var allRepos []api.Repo
+	var allRepos []Repo
 	var mu sync.Mutex
 	seen := make(map[string]struct{})
 	retryCount := 0
