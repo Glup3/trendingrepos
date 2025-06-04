@@ -11,12 +11,16 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
+type apiClient interface {
+	SearchRepos(ctx context.Context, queryArgs api.QueryArgs) ([]api.GitHubRepo, error)
+}
+
 type Loader struct {
-	apiClient *api.APIClient
+	apiClient apiClient
 	logger    *slog.Logger
 }
 
-func NewLoader(apiClient *api.APIClient, logger *slog.Logger) *Loader {
+func NewLoader(apiClient apiClient, logger *slog.Logger) *Loader {
 	return &Loader{
 		apiClient: apiClient,
 		logger:    logger,

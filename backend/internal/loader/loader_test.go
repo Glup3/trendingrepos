@@ -1,0 +1,90 @@
+package loader
+
+import (
+	"context"
+	"fmt"
+	"log/slog"
+	"sync"
+	"testing"
+
+	"github.com/glup3/trendingrepos/internal/api"
+)
+
+type searchResponse struct {
+	Repos []api.GitHubRepo
+	Err   error
+}
+
+type apiClientMock struct {
+	mu        sync.Mutex
+	responses []searchResponse
+	count     int
+}
+
+func (m *apiClientMock) SearchRepos(ctx context.Context, queryArgs api.QueryArgs) ([]api.GitHubRepo, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	if m.count >= len(m.responses) {
+		return nil, fmt.Errorf(
+			"apiClientMock: SearchRepos called more times than expected (call %d, expected %d)",
+			m.count+1,
+			len(m.responses),
+		)
+	}
+
+	resp := m.responses[m.count]
+	m.count++
+	return resp.Repos, resp.Err
+}
+
+func TestLoadRepos(t *testing.T) {
+	tests := []struct {
+		name          string
+		mockResponses []searchResponse
+	}{
+		{
+			name: "ditto",
+			mockResponses: []searchResponse{
+				{Repos: buildRepos(t, 100, "a"), Err: nil},
+				{Repos: buildRepos(t, 100, "s"), Err: nil},
+				{Repos: buildRepos(t, 100, "d"), Err: nil},
+				{Repos: buildRepos(t, 100, "f"), Err: nil},
+				{Repos: buildRepos(t, 100, "g"), Err: nil},
+				{Repos: buildRepos(t, 100, "h"), Err: nil},
+				{Repos: buildRepos(t, 100, "j"), Err: nil},
+				{Repos: buildRepos(t, 100, "k"), Err: nil},
+				{Repos: buildRepos(t, 100, "l"), Err: nil},
+				{Repos: buildRepos(t, 100, ";"), Err: nil},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			l := NewLoader(&apiClientMock{
+				responses: tt.mockResponses,
+			}, slog.Default())
+
+			repos, err := l.LoadRepos(context.Background(), 300)
+			if err != nil {
+				t.Errorf("expected no error, got: %v", err)
+				return
+			}
+
+			if len(repos) != 1000 {
+				t.Errorf("expected a total of 1000 repos, got: %d", len(repos))
+				return
+			}
+		})
+	}
+}
+
+func buildRepos(t testing.TB, cap int, prefix string) []api.GitHubRepo {
+	t.Helper()
+	repos := make([]api.GitHubRepo, 0, cap)
+	for i := range cap {
+		repos = append(repos, api.GitHubRepo{Id: fmt.Sprintf("%s%d", prefix, i)})
+	}
+	return repos
+}
