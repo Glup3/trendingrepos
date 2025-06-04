@@ -43,6 +43,7 @@ func TestLoadRepos(t *testing.T) {
 		name          string
 		mockResponses []searchResponse
 		expectedLen   int
+		expectedError bool
 	}{
 		{
 			name: "all unique",
@@ -58,7 +59,8 @@ func TestLoadRepos(t *testing.T) {
 				{Repos: buildRepos(t, 100, "l"), Err: nil},
 				{Repos: buildRepos(t, 100, ";"), Err: nil},
 			},
-			expectedLen: 1000,
+			expectedLen:   1000,
+			expectedError: false,
 		},
 		{
 			name: "with duplicates",
@@ -74,7 +76,59 @@ func TestLoadRepos(t *testing.T) {
 				{Repos: nil, Err: nil},
 				{Repos: nil, Err: nil},
 			},
-			expectedLen: 200,
+			expectedLen:   200,
+			expectedError: false,
+		},
+		{
+			name: "with single failure",
+			mockResponses: []searchResponse{
+				{Repos: nil, Err: fmt.Errorf("504")},
+				{Repos: nil, Err: nil},
+				{Repos: nil, Err: nil},
+				{Repos: nil, Err: nil},
+				{Repos: nil, Err: nil},
+				{Repos: nil, Err: nil},
+				{Repos: nil, Err: nil},
+				{Repos: nil, Err: nil},
+				{Repos: nil, Err: nil},
+				{Repos: nil, Err: nil},
+			},
+			expectedLen:   0,
+			expectedError: true,
+		},
+		{
+			name: "with multiple failure",
+			mockResponses: []searchResponse{
+				{Repos: nil, Err: fmt.Errorf("504")},
+				{Repos: nil, Err: nil},
+				{Repos: nil, Err: nil},
+				{Repos: nil, Err: fmt.Errorf("504")},
+				{Repos: nil, Err: nil},
+				{Repos: nil, Err: fmt.Errorf("504")},
+				{Repos: nil, Err: nil},
+				{Repos: nil, Err: fmt.Errorf("504")},
+				{Repos: nil, Err: fmt.Errorf("504")},
+				{Repos: nil, Err: nil},
+			},
+			expectedLen:   0,
+			expectedError: true,
+		},
+		{
+			name: "with all failure",
+			mockResponses: []searchResponse{
+				{Repos: nil, Err: fmt.Errorf("504")},
+				{Repos: nil, Err: fmt.Errorf("504")},
+				{Repos: nil, Err: fmt.Errorf("504")},
+				{Repos: nil, Err: fmt.Errorf("504")},
+				{Repos: nil, Err: fmt.Errorf("504")},
+				{Repos: nil, Err: fmt.Errorf("504")},
+				{Repos: nil, Err: fmt.Errorf("504")},
+				{Repos: nil, Err: fmt.Errorf("504")},
+				{Repos: nil, Err: fmt.Errorf("504")},
+				{Repos: nil, Err: fmt.Errorf("504")},
+			},
+			expectedLen:   0,
+			expectedError: true,
 		},
 	}
 
@@ -85,11 +139,14 @@ func TestLoadRepos(t *testing.T) {
 			}, slog.Default())
 
 			repos, err := l.LoadRepos(context.Background(), 300)
-			if err != nil {
+			if !tt.expectedError && err != nil {
 				t.Errorf("expected no error, got: %v", err)
 				return
 			}
-
+			if tt.expectedError && err == nil {
+				t.Errorf("expected error, got: nil")
+				return
+			}
 			if len(repos) != tt.expectedLen {
 				t.Errorf("expected a total of %d repos, got: %d", tt.expectedLen, len(repos))
 				return
