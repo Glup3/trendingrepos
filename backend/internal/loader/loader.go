@@ -62,6 +62,7 @@ func (l *Loader) LoadRepos(ctx context.Context, maxStars int) ([]Repo, error) {
 	var mu sync.Mutex
 	g := new(errgroup.Group)
 	repos := make([]Repo, 0, len(Cursors)*PageSize)
+	seen := make(map[string]struct{})
 
 	for _, cursor := range Cursors {
 		g.Go(func() error {
@@ -77,7 +78,10 @@ func (l *Loader) LoadRepos(ctx context.Context, maxStars int) ([]Repo, error) {
 
 			mu.Lock()
 			for _, ghRepo := range ghRepos {
-				repos = append(repos, repoFromGitHubRepo(ghRepo))
+				if _, exists := seen[ghRepo.Id]; !exists {
+					seen[ghRepo.Id] = struct{}{}
+					repos = append(repos, repoFromGitHubRepo(ghRepo))
+				}
 			}
 			mu.Unlock()
 			return nil

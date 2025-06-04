@@ -42,9 +42,10 @@ func TestLoadRepos(t *testing.T) {
 	tests := []struct {
 		name          string
 		mockResponses []searchResponse
+		expectedLen   int
 	}{
 		{
-			name: "ditto",
+			name: "all unique",
 			mockResponses: []searchResponse{
 				{Repos: buildRepos(t, 100, "a"), Err: nil},
 				{Repos: buildRepos(t, 100, "s"), Err: nil},
@@ -57,6 +58,23 @@ func TestLoadRepos(t *testing.T) {
 				{Repos: buildRepos(t, 100, "l"), Err: nil},
 				{Repos: buildRepos(t, 100, ";"), Err: nil},
 			},
+			expectedLen: 1000,
+		},
+		{
+			name: "with duplicates",
+			mockResponses: []searchResponse{
+				{Repos: buildRepos(t, 100, "ditto"), Err: nil},
+				{Repos: buildRepos(t, 100, "ditto"), Err: nil},
+				{Repos: nil, Err: nil},
+				{Repos: buildRepos(t, 100, "dittto"), Err: nil},
+				{Repos: nil, Err: nil},
+				{Repos: nil, Err: nil},
+				{Repos: nil, Err: nil},
+				{Repos: nil, Err: nil},
+				{Repos: nil, Err: nil},
+				{Repos: nil, Err: nil},
+			},
+			expectedLen: 200,
 		},
 	}
 
@@ -72,8 +90,8 @@ func TestLoadRepos(t *testing.T) {
 				return
 			}
 
-			if len(repos) != 1000 {
-				t.Errorf("expected a total of 1000 repos, got: %d", len(repos))
+			if len(repos) != tt.expectedLen {
+				t.Errorf("expected a total of %d repos, got: %d", tt.expectedLen, len(repos))
 				return
 			}
 		})
