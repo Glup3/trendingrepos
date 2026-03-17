@@ -25,7 +25,7 @@ export const RepoTile = ({ repo }: { repo: Repo }) => {
             {repo.name}
           </a>
 
-          <p className="text-muted-foreground line-clamp-3 text-sm">
+          <p className="text-muted-foreground line-clamp-3 break-all text-sm">
             {repo.description || 'No description'}
           </p>
         </div>
